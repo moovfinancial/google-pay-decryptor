@@ -1,4 +1,4 @@
-module github.com/zethuman/google-pay-decryptor
+module github.com/m1crogravity/google-pay-decryptor
 
 go 1.17
 
