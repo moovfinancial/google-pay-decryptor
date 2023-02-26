@@ -11,7 +11,7 @@ Library was written in base of [Tink](https://github.com/google/tink) library, w
 Install by one step
 
 ```
-go get -v github.com/zethuman/google-pay-decryptor
+go get -v github.com/m1crogravity/google-pay-decryptor
 ```
 
 ### Types

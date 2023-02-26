@@ -23,8 +23,8 @@ package decrypt_test
 import (
 	"testing"
 
-	"github.com/zethuman/google-pay-decryptor/decrypt"
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 )
 
 func TestVerifySignature(t *testing.T) {

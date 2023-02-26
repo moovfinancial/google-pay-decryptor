@@ -23,9 +23,9 @@ package decrypt_test
 import (
 	"testing"
 
+	"github.com/m1crogravity/google-pay-decryptor/decrypt"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 	"github.com/stretchr/testify/assert"
-	"github.com/zethuman/google-pay-decryptor/decrypt"
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
 )
 
 func TestDeriveKeys(t *testing.T) {
@@ -37,9 +37,9 @@ func TestDeriveKeys(t *testing.T) {
 		{
 			name:              "Normal case",
 			prviateKeyEncoded: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB",
-			token: TestToken,
-			mac:           []byte{254, 126, 190, 74, 145, 45, 85, 141, 82, 231, 171, 227, 17, 124, 132, 162, 207, 84, 15, 123, 218, 193, 153, 156, 36, 94, 103, 61, 124, 4, 15, 138},
-			encryptionKey: []byte{50, 44, 36, 45, 28, 38, 113, 31, 125, 246, 105, 125, 109, 13, 180, 130, 65, 191, 130, 161, 251, 90, 150, 198, 177, 87, 175, 180, 124, 118, 14, 184},
+			token:             TestToken,
+			mac:               []byte{254, 126, 190, 74, 145, 45, 85, 141, 82, 231, 171, 227, 17, 124, 132, 162, 207, 84, 15, 123, 218, 193, 153, 156, 36, 94, 103, 61, 124, 4, 15, 138},
+			encryptionKey:     []byte{50, 44, 36, 45, 28, 38, 113, 31, 125, 246, 105, 125, 109, 13, 180, 130, 65, 191, 130, 161, 251, 90, 150, 198, 177, 87, 175, 180, 124, 118, 14, 184},
 		},
 	}
 

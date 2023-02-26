@@ -22,7 +22,7 @@ package decrypt
 
 import (
 	"github.com/google/tink/go/mac/subtle"
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 )
 
 func VerifyMessageHmac(macKey []byte, tag string, encryptedMessage string) error {

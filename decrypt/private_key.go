@@ -26,7 +26,7 @@ import (
 	"crypto/x509"
 
 	"github.com/google/tink/go/hybrid/subtle"
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 )
 
 type PrivateKey struct{}

@@ -24,9 +24,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/m1crogravity/google-pay-decryptor/decrypt"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 	"github.com/stretchr/testify/assert"
-	"github.com/zethuman/google-pay-decryptor/decrypt"
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
 )
 
 func TestInit(t *testing.T) {

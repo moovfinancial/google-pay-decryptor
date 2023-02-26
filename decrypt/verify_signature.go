@@ -22,7 +22,7 @@ package decrypt
 
 import (
 	subsig "github.com/google/tink/go/signature/subtle"
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 )
 
 func VerifySignature(token types.Token, keyValues []string, receipientId string) error {

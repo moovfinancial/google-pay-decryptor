@@ -23,9 +23,9 @@ package decrypt_test
 import (
 	"testing"
 
+	"github.com/m1crogravity/google-pay-decryptor/decrypt"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 	"github.com/stretchr/testify/assert"
-	"github.com/zethuman/google-pay-decryptor/decrypt"
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
 )
 
 func TestFilter(t *testing.T) {

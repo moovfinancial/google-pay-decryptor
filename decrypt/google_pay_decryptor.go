@@ -26,7 +26,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zethuman/google-pay-decryptor/decrypt/types"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
 )
 
 type GooglePayDecryptor struct {
@@ -66,24 +66,24 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 	if err := VerifySignature(token, keyValues, g.recipientId); err != nil {
 		return types.Decrypted{}, err
 	}
-	
+
 	// check time and verify signature
 	if !CheckTime(rootSigningKeys.KeyExpiration) {
 		return types.Decrypted{}, types.ErrValidateTime
 	}
-	
+
 	// derive mac and encryption keys
 	mac, encryptionKey, err := DeriveKeys(token, g.privateKey)
 	if err != nil {
 		return types.Decrypted{}, err
 	}
-	
+
 	signedMessage, _ := token.UnmarshalSignedMessage(token.SignedMessage)
 	// verify mac
 	if err := VerifyMessageHmac(mac, signedMessage.Tag, signedMessage.EncryptedMessage); err != nil {
 		return types.Decrypted{}, err
 	}
-	
+
 	// Decode message with encryptionKey
 	decodedMessage, err := Decode(encryptionKey, signedMessage.EncryptedMessage)
 	if err != nil {
@@ -99,6 +99,6 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 		}
 		return types.Decrypted{}, errors.New(newError)
 	}
-	
+
 	return decrypted, nil
 }

@@ -25,8 +25,8 @@ import (
 	"testing"
 
 	"github.com/google/tink/go/subtle/random"
+	"github.com/m1crogravity/google-pay-decryptor/decrypt"
 	"github.com/stretchr/testify/assert"
-	"github.com/zethuman/google-pay-decryptor/decrypt"
 )
 
 func TestBase64Decode(t *testing.T) {
