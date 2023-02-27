@@ -56,11 +56,7 @@ func NewGooglePayDecryptor() (*GooglePayDecryptor, error) {
 	if rootkeys == nil && recipientId == "" && privateKey == "" {
 		return nil, types.ErrLoadingKeys
 	}
-	return &GooglePayDecryptor{
-		rootKeys:    rootkeys,
-		recipientId: recipientId,
-		privateKey:  privateKey,
-	}, nil
+	return New(rootkeys, recipientId, privateKey), nil
 }
 
 func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error) {
