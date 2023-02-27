@@ -35,6 +35,14 @@ type GooglePayDecryptor struct {
 	privateKey  string
 }
 
+func New(rootKeys []byte, recipientId string, privateKey string) *GooglePayDecryptor {
+	return &GooglePayDecryptor{
+		rootKeys:    rootKeys,
+		recipientId: recipientId,
+		privateKey:  privateKey,
+	}
+}
+
 func Init(rootKeys []byte, recipientId string, privateKey string) {
 	os.Setenv("ROOTKEYS", string(rootKeys))
 	os.Setenv("RECIPIENTID", recipientId)
