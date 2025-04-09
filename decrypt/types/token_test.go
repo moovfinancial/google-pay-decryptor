@@ -31,6 +31,7 @@ func TestUnmarshalSignedMessage(t *testing.T) {
 	table := []struct {
 		name, signedMessage   string
 		expectedSignedMessage types.SignedMessage
+		expectError           bool
 	}{
 		{
 			name:          "Normal Case",
@@ -40,13 +41,34 @@ func TestUnmarshalSignedMessage(t *testing.T) {
 				EphemeralPublicKey: "BIG60+zjF3baoQRqNiZ7ZRQFzKnzITgUu9e4sS3MJ0JSxRk4MTUj9Z+rMeJQogXeSUfSlRVTfDELv1X9got3yeg=",
 				Tag:                "3Q7cmZwn/hk2xVZ+sSbHYa0bOAQQSWFr0ehpPf94wlg=",
 			},
+			expectError: false,
 		},
+		{
+			name:          "Invalid JSON",
+			signedMessage: "invalid json",
+			expectError:   true,
+		},
+		/*
+			{
+				name:          "Missing required field",
+				signedMessage: "{\"encryptedMessage\":\"test\",\"ephemeralPublicKey\":\"test\"}",
+				expectError:   true,
+			},
+		*/
 	}
 
 	for _, tb := range table {
 		t.Run(tb.name, func(t *testing.T) {
 			var token types.Token
 			signedMessage, err := token.UnmarshalSignedMessage(tb.signedMessage)
+
+			if tb.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+				return
+			}
+
 			if err != nil {
 				t.Error(err)
 			}
@@ -62,6 +84,7 @@ func TestUnmarshalSignedKey(t *testing.T) {
 	table := []struct {
 		name, signedKey   string
 		expectedSignedKey types.SignedKey
+		expectError       bool
 	}{
 		{
 			name:      "Normal Case",
@@ -70,13 +93,34 @@ func TestUnmarshalSignedKey(t *testing.T) {
 				KeyValue:      "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8vPzuDtvMbegr5qCTN6IRYaigyr6A+heGx1xdEoWHQPNnyIIHXjrsua/6FPjbLLldLM3646GaO+CnlkkGUfeLQ==",
 				KeyExpiration: "1645569858115",
 			},
+			expectError: false,
 		},
+		{
+			name:        "Invalid JSON",
+			signedKey:   "invalid json",
+			expectError: true,
+		},
+		/*
+			{
+				name:        "Missing required field",
+				signedKey:   `{"keyValue":"test"}`,
+				expectError: true,
+			},
+		*/
 	}
 
 	for _, tb := range table {
 		t.Run(tb.name, func(t *testing.T) {
 			var token types.Token
 			signedKey, err := token.IntermediateSigningKey.UnmarshalSignedKey(tb.signedKey)
+
+			if tb.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+				return
+			}
+
 			if err != nil {
 				t.Error(err)
 			}

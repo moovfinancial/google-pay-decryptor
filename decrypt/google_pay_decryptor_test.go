@@ -21,7 +21,10 @@
 package decrypt_test
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"testing"
 
@@ -155,4 +158,106 @@ func TestDecrypt(t *testing.T) {
 			//assert.Equal(t, tb.decrypted, decrypted)
 		})
 	}
+}
+
+func TestNewWithRootKeysFromGoogle(t *testing.T) {
+	// Save original HTTP client
+	originalClient := decrypt.DefaultHTTPClient
+	defer func() {
+		decrypt.DefaultHTTPClient = originalClient
+	}()
+
+	// Set up mock client
+	decrypt.DefaultHTTPClient = &mockHTTPClient{
+		statusCode: http.StatusOK,
+		body:       []byte(TestRootKeys),
+	}
+
+	// Test case 1: Valid test environment
+	recipientId := "merchant:12345678901234567890"
+	privateKey := "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB"
+
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", recipientId, privateKey)
+	assert.NoError(t, err)
+	assert.NotNil(t, decryptor)
+
+	// Test case 2: Invalid environment
+	decryptor, err = decrypt.NewWithRootKeysFromGoogle("invalid", recipientId, privateKey)
+	assert.Error(t, err)
+	assert.Nil(t, decryptor)
+
+	// Test case 3: Empty recipient ID
+	decryptor, err = decrypt.NewWithRootKeysFromGoogle("test", "", privateKey)
+	assert.Error(t, err)
+	assert.Nil(t, decryptor)
+
+	// Test case 4: Empty private key
+	decryptor, err = decrypt.NewWithRootKeysFromGoogle("test", recipientId, "")
+	assert.Error(t, err)
+	assert.Nil(t, decryptor)
+}
+
+func TestFetchGoogleRootKeys(t *testing.T) {
+	// Save original HTTP client
+	originalClient := decrypt.DefaultHTTPClient
+	defer func() {
+		decrypt.DefaultHTTPClient = originalClient
+	}()
+
+	// Test case 1: Test environment
+	decrypt.DefaultHTTPClient = &mockHTTPClient{
+		statusCode: http.StatusOK,
+		body:       []byte(TestRootKeys),
+	}
+	keys, err := decrypt.FetchGoogleRootKeys("test")
+	assert.NoError(t, err)
+	assert.NotNil(t, keys)
+
+	// Test case 2: Production environment
+	decrypt.DefaultHTTPClient = &mockHTTPClient{
+		statusCode: http.StatusOK,
+		body:       []byte(TestRootKeys),
+	}
+	keys, err = decrypt.FetchGoogleRootKeys("production")
+	assert.NoError(t, err)
+	assert.NotNil(t, keys)
+
+	// Test case 3: Invalid environment
+	keys, err = decrypt.FetchGoogleRootKeys("invalid")
+	assert.Error(t, err)
+	assert.Nil(t, keys)
+
+	// Test case 4: HTTP error
+	decrypt.DefaultHTTPClient = &mockHTTPClient{
+		err: fmt.Errorf("connection error"),
+	}
+	keys, err = decrypt.FetchGoogleRootKeys("test")
+	assert.Error(t, err)
+	assert.Nil(t, keys)
+
+	// Test case 5: Non-200 status code
+	decrypt.DefaultHTTPClient = &mockHTTPClient{
+		statusCode: http.StatusNotFound,
+	}
+	keys, err = decrypt.FetchGoogleRootKeys("test")
+	assert.Error(t, err)
+	assert.Nil(t, keys)
+}
+
+// mockHTTPClient implements the HTTPClient interface for testing
+type mockHTTPClient struct {
+	statusCode int
+	body       []byte
+	err        error
+}
+
+func (m *mockHTTPClient) Get(url string) (*http.Response, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	return &http.Response{
+		StatusCode: m.statusCode,
+		Body:       io.NopCloser(bytes.NewReader(m.body)),
+	}, nil
 }

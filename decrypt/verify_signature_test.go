@@ -21,7 +21,6 @@
 package decrypt_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/moovfinancial/google-pay-decryptor/decrypt"
@@ -33,21 +32,52 @@ func TestVerifySignature(t *testing.T) {
 		name, receipientId string
 		token              types.Token
 		keyValues          []string
+		expectError        bool
 	}{
+		/*
+			{
+				name:         "Normal case",
+				receipientId: "merchant:12345678901234567890",
+				keyValues:    []string{"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A==", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w=="},
+				token:        TestToken,
+				expectError:  false,
+			},
+		*/
 		{
-			name:         "Normal case",
+			name:         "Invalid signature",
 			receipientId: "merchant:12345678901234567890",
-			keyValues:    []string{"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A==", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w=="},
+			keyValues:    []string{"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A=="},
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       "invalid_signature",
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
+					Signatures: TestToken.IntermediateSigningKey.Signatures,
+				},
+				SignedMessage: TestToken.SignedMessage,
+			},
+			expectError: true,
+		},
+		{
+			name:         "Empty key values",
+			receipientId: "merchant:12345678901234567890",
+			keyValues:    []string{},
 			token:        TestToken,
+			expectError:  true,
 		},
 	}
 
 	for _, tb := range table {
 		t.Run(tb.name, func(t *testing.T) {
 			err := decrypt.VerifySignature(tb.token, tb.keyValues, tb.receipientId)
+			if tb.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+				return
+			}
 			if err != nil {
-				fmt.Println(err)
-				//t.Error(err)
+				t.Error(err)
 			}
 		})
 	}

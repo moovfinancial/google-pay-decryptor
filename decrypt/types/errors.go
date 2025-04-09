@@ -35,4 +35,5 @@ var (
 	ErrVerifySignature    = errors.New("could not verify intermediate signing key signature")
 	ErrLengthDoesnotMatch = errors.New("length of key does not match")
 	ErrLoadingKeys        = errors.New("please call Init() function to initialize keys")
+	ErrVerifyMac          = errors.New("failed to verify message HMAC")
 )

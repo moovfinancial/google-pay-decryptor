@@ -37,6 +37,14 @@ const (
 	ProductionRootKeysUrl = "https://payments.developers.google.com/paymentmethodtoken/keys.json"
 )
 
+// HTTPClient is an interface for making HTTP requests
+type HTTPClient interface {
+	Get(url string) (*http.Response, error)
+}
+
+// DefaultHTTPClient is the default HTTP client used for making requests
+var DefaultHTTPClient HTTPClient = &http.Client{}
+
 type GooglePayDecryptor struct {
 	rootKeys    []byte
 	recipientId string
@@ -68,7 +76,7 @@ func NewGooglePayDecryptor() (*GooglePayDecryptor, error) {
 }
 
 func NewWithRootKeysFromGoogle(environment string, recipientId string, privateKey string) (*GooglePayDecryptor, error) {
-	rootkeys, err := fetchGoogleRootKeys(environment)
+	rootkeys, err := FetchGoogleRootKeys(environment)
 	if err != nil {
 		return nil, err
 	}
@@ -79,14 +87,15 @@ func NewWithRootKeysFromGoogle(environment string, recipientId string, privateKe
 	return New(rootkeys, recipientId, privateKey), nil
 }
 
-func fetchGoogleRootKeys(environment string) ([]byte, error) {
+// FetchGoogleRootKeys retrieves the root keys from Google's servers for the specified environment.
+func FetchGoogleRootKeys(environment string) ([]byte, error) {
 	var resp *http.Response
 	var err error
 
 	if environment == "test" {
-		resp, err = http.Get(TestRootKeysUrl)
+		resp, err = DefaultHTTPClient.Get(TestRootKeysUrl)
 	} else if environment == "production" {
-		resp, err = http.Get(ProductionRootKeysUrl)
+		resp, err = DefaultHTTPClient.Get(ProductionRootKeysUrl)
 	} else {
 		return nil, fmt.Errorf("invalid environment: %s", environment)
 	}
