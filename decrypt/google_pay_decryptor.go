@@ -24,9 +24,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 
 	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+)
+
+// https://developers.google.com/pay/api/processors/guides/implementation/validate-decryption-google
+const (
+	TestRootKeysUrl       = "https://payments.developers.google.com/paymentmethodtoken/test/keys.json"
+	ProductionRootKeysUrl = "https://payments.developers.google.com/paymentmethodtoken/keys.json"
 )
 
 type GooglePayDecryptor struct {
@@ -53,10 +61,51 @@ func NewGooglePayDecryptor() (*GooglePayDecryptor, error) {
 	rootkeys := []byte(os.Getenv("ROOTKEYS"))
 	recipientId := os.Getenv("RECIPIENTID")
 	privateKey := os.Getenv("PRIVATEKEY")
-	if rootkeys == nil && recipientId == "" && privateKey == "" {
+	if rootkeys == nil || recipientId == "" || privateKey == "" {
 		return nil, types.ErrLoadingKeys
 	}
 	return New(rootkeys, recipientId, privateKey), nil
+}
+
+func NewWithRootKeysFromGoogle(environment string, recipientId string, privateKey string) (*GooglePayDecryptor, error) {
+	rootkeys, err := fetchGoogleRootKeys(environment)
+	if err != nil {
+		return nil, err
+	}
+
+	if rootkeys == nil || recipientId == "" || privateKey == "" {
+		return nil, types.ErrLoadingKeys
+	}
+	return New(rootkeys, recipientId, privateKey), nil
+}
+
+func fetchGoogleRootKeys(environment string) ([]byte, error) {
+	var resp *http.Response
+	var err error
+
+	if environment == "test" {
+		resp, err = http.Get(TestRootKeysUrl)
+	} else if environment == "production" {
+		resp, err = http.Get(ProductionRootKeysUrl)
+	} else {
+		return nil, fmt.Errorf("invalid environment: %s", environment)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch root keys: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch root keys, status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	return body, nil
 }
 
 func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error) {
