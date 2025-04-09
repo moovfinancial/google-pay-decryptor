@@ -26,7 +26,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
+	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
 type GooglePayDecryptor struct {

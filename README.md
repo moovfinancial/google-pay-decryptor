@@ -11,7 +11,7 @@ Library was written in base of [Tink](https://github.com/google/tink) library, w
 Install by one step
 
 ```
-go get -v github.com/m1crogravity/google-pay-decryptor
+go get -v github.com/moovfinancial/google-pay-decryptor
 ```
 
 ### Types
@@ -32,7 +32,10 @@ var output types.Decrypted
 
 ### Demo
 
-1. Load [root signing keys](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#root-signing-keys), [private key](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#using-openssl) and [merchantID](https://developers.google.com/pay/api/web/guides/tutorial#tokenization) as recipientId while launching app
+Load the following information:
+1. [root signing keys](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#root-signing-keys)
+2. [private key](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#using-openssl)
+3. [merchantID](https://developers.google.com/pay/api/web/guides/tutorial#tokenization) as recipientId while launching app
 
 ```
 decrypt.Init(rootKeys, recipientId, privateKey)
@@ -76,25 +79,11 @@ To visualize coverage by tests
 go tool cover -html=c.out -o coverage.html
 ```
 
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
+## Original Authors
 
 * **Zhuman Rakhat** - *Initial work* - [Google Pay Decryptor](https://github.com/zethuman/google-pay-decryptor)
-
-See also the list of [contributors](https://github.com/zethuman/google-pay-decryptor/contributors) who participated in this project.
+* **Naidenko Dmytro** - *Forked work* - [Google Pay Decryptor](https://github.com/M1crogravity/google-pay-decryptor)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* If you find an error, feel free to open an issue and we will figure it out
-* Let's make the world easier and improve the design and implementations in Go
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

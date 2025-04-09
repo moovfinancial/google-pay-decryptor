@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/m1crogravity/google-pay-decryptor/decrypt/types"
+	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
 func Base64Decode(base64PublicKey string) ([]byte, error) {
