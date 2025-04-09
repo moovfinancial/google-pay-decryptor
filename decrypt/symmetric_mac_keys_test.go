@@ -33,6 +33,7 @@ func TestDeriveKeys(t *testing.T) {
 		name, prviateKeyEncoded string
 		token                   types.Token
 		mac, encryptionKey      []byte
+		expectError             bool
 	}{
 		{
 			name:              "Normal case",
@@ -40,22 +41,37 @@ func TestDeriveKeys(t *testing.T) {
 			token:             TestToken,
 			mac:               []byte{254, 126, 190, 74, 145, 45, 85, 141, 82, 231, 171, 227, 17, 124, 132, 162, 207, 84, 15, 123, 218, 193, 153, 156, 36, 94, 103, 61, 124, 4, 15, 138},
 			encryptionKey:     []byte{50, 44, 36, 45, 28, 38, 113, 31, 125, 246, 105, 125, 109, 13, 180, 130, 65, 191, 130, 161, 251, 90, 150, 198, 177, 87, 175, 180, 124, 118, 14, 184},
+			expectError:       false,
+		},
+		{
+			name:              "Invalid Input",
+			prviateKeyEncoded: "badkey",
+			token:             TestToken,
+			mac:               []byte{0, 0},
+			encryptionKey:     []byte{0, 0, 0},
+			expectError:       true,
 		},
 	}
 
 	for _, tb := range table {
 		t.Run(tb.name, func(t *testing.T) {
 			mac, encryptionKey, err := decrypt.DeriveKeys(tb.token, tb.prviateKeyEncoded)
-			if err != nil {
-				t.Log(err)
+			if err != nil && !tb.expectError {
+				t.Errorf("expected no error, got %v", err)
 			}
 
-			if !assert.Equal(t, tb.mac, mac) {
-				t.Errorf("actual mac does not match expected mac")
+			if err == nil && tb.expectError {
+				t.Errorf("expected error, got nil")
 			}
 
-			if !assert.Equal(t, tb.encryptionKey, encryptionKey) {
-				t.Errorf("actual encryption key does not match expected encryption key")
+			if !tb.expectError {
+				if !assert.Equal(t, tb.mac, mac) {
+					t.Errorf("actual mac does not match expected mac")
+				}
+
+				if !assert.Equal(t, tb.encryptionKey, encryptionKey) {
+					t.Errorf("actual encryption key does not match expected encryption key")
+				}
 			}
 		})
 	}

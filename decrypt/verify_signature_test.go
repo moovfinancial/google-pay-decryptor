@@ -82,3 +82,46 @@ func TestVerifySignature(t *testing.T) {
 		})
 	}
 }
+
+func TestVerifyMessageSignature(t *testing.T) {
+	table := []struct {
+		name         string
+		token        types.Token
+		keyValues    []string
+		receipientId string
+		expectError  bool
+	}{
+		/*
+			// TODO: Add test for normal case
+			{
+				name:         "Normal case",
+				token:        TestToken,
+				keyValues:    []string{"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A=="},
+				receipientId: "merchant:12345678901234567890",
+				expectError:  false,
+			},
+		*/
+		{
+			name:         "Invalid signature",
+			token:        TestToken,
+			keyValues:    []string{"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A=="},
+			receipientId: "merchant:12345678901234567890",
+			expectError:  true,
+		},
+	}
+
+	for _, tb := range table {
+		t.Run(tb.name, func(t *testing.T) {
+			err := decrypt.VerifySignature(tb.token, tb.keyValues, tb.receipientId)
+			if tb.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+				return
+			}
+			if err != nil {
+				t.Error(err)
+			}
+		})
+	}
+}

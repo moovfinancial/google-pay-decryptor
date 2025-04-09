@@ -60,3 +60,11 @@ func TestLoadKey(t *testing.T) {
 		t.Errorf("loaded key is incorrect or does not match")
 	}
 }
+
+func TestBadKey(t *testing.T) {
+	var privK decrypt.PrivateKey
+	_, err := privK.LoadKey("badkey")
+	if err == nil {
+		t.Fatalf("expected error loading key")
+	}
+}
