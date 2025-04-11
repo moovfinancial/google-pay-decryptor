@@ -45,7 +45,7 @@ func DeriveKeys(token types.Token, privateKeyEncoded string) ([]byte, []byte, er
 	}
 	decodedEphemeralKey, _ := Base64Decode(signedMessage.EphemeralPublicKey)
 	combined := append(decodedEphemeralKey, sharedSecret...)
-	derivedKeyHKDF, err := hkdf.ComputeHKDF(types.ALGORITHM, combined, make([]byte, 32), []byte(types.SENDER), 64)
+	derivedKeyHKDF, err := hkdf.ComputeHKDF(GooglePaySHA256HashAlgorithm, combined, make([]byte, 32), []byte(GooglePaySenderID), 64)
 	if err != nil {
 		return nil, nil, err
 	}

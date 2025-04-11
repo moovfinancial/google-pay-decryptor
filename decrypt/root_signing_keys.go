@@ -48,5 +48,5 @@ func loadRootSigningKeys(rootKeys []byte) (types.RootKeys, []string, error) {
 			return filtered, keyValues, nil
 		}
 	}
-	return types.RootKeys{}, keyValues, types.ErrParseJson
+	return types.RootKeys{}, keyValues, ErrParseJson
 }

@@ -29,12 +29,11 @@ import (
 
 	"github.com/google/tink/go/hybrid/subtle"
 	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadKey(t *testing.T) {
-	curve, _ := subtle.GetCurve(types.CURVE)
+	curve, _ := subtle.GetCurve(decrypt.GooglePayECCType)
 	generated, _ := subtle.GenerateECDHKeyPair(curve)
 	converted := &ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{

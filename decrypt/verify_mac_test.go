@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
 func TestVerifyMessageHmac(t *testing.T) {
@@ -44,7 +43,7 @@ func TestVerifyMessageHmac(t *testing.T) {
 			mac:              []byte{254, 126, 190, 74, 145, 45, 85, 141, 82, 231, 171, 227, 17, 124, 132, 162, 207, 84, 15, 123, 218, 193, 153, 156, 36, 94, 103, 61, 124, 4, 15, 138},
 			tag:              "invalid_tag",
 			encryptedMessage: "5RB8tx7IeHATogErh29B44USzvUAeDdjlDspWP9uQAzH1qiefn2p/WTFjk429sQvUT7oLts+bTAqVXihEnV69zWyNqW0a0oFeIjCC5YqdBMqOsHdo1dWYuDWXJOQNgOnUghFRJSLGnb4KRvQMiF06GRGqxHgJoS+IiaxXX98Zcsa/ljBtvkqQ3Pug91E9+FJmzWDgrUDf3mDXAac4cZf/hW1mUt+XhWAI1Q0etwpW7DwdeDyt5GFOXqBhsF6a6qVtwNIxltd0NaGz2Yj+NhrinCb0aiyXELn9Hw6vkRssRPXUqygbkBDffU+XP9LjbBweS1usODcSb8IJ/uP1QO3tYlj9Qd44OMxuXaEjM2B2RrNZKuNd7uUByZ1B7OyL3NEvwY5ebMYkDJx51JfPATIzcGzU9/7rrR3mny9pZvJmEwY3y7rO7jDrcZYBQ3452GRlDTC67gRZopx4OJlj0pWX7aaO7ZtRowqkynANL0mdrz4wZihR5AFPOiVFKPh3iWv2EzszAceY4xqqoawmqyGFS4L24TiQ0WX",
-			expected:         types.ErrVerifyMac,
+			expected:         decrypt.ErrVerifyMac,
 		},
 		/*
 			{

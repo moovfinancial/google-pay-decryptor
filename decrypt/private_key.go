@@ -26,7 +26,6 @@ import (
 	"crypto/x509"
 
 	"github.com/google/tink/go/hybrid/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
 type PrivateKey struct{}
@@ -42,7 +41,7 @@ func (p *PrivateKey) LoadKey(privateKey string) (*subtle.ECPrivateKey, error) {
 	}
 	privKey, ok := priv.(*ecdsa.PrivateKey)
 	if !ok {
-		return &subtle.ECPrivateKey{}, types.ErrPrivateKey
+		return &subtle.ECPrivateKey{}, ErrPrivateKey
 	}
 	ecpoints := subtle.ECPoint{X: privKey.PublicKey.X, Y: privKey.PublicKey.Y}
 	publicKey := subtle.ECPublicKey{Curve: elliptic.P256(), Point: ecpoints}

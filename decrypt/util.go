@@ -25,8 +25,6 @@ import (
 	"encoding/binary"
 	"strconv"
 	"time"
-
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
 func Base64Decode(base64PublicKey string) ([]byte, error) {
@@ -39,7 +37,7 @@ func Base64Decode(base64PublicKey string) ([]byte, error) {
 
 func GenerateMacKeyAndEncryptionKey(sharedSecret []byte) ([]byte, []byte, error) {
 	if len(sharedSecret) != 64 {
-		return nil, nil, types.ErrLengthDoesnotMatch
+		return nil, nil, ErrLengthDoesnotMatch
 	}
 	encryptionKey := sharedSecret[:32]
 	macKey := sharedSecret[32:]

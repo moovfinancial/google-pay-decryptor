@@ -27,7 +27,7 @@ import (
 
 func VerifySignature(token types.Token, keyValues []string, receipientId string) error {
 	if token.ProtocolVersion != "ECv2" {
-		return types.ErrProtocolV
+		return ErrProtocolV
 	}
 
 	if err := verifyIntermediateSigningKey(token, keyValues); err != nil {
@@ -40,7 +40,7 @@ func VerifySignature(token types.Token, keyValues []string, receipientId string)
 	}
 
 	if !CheckTime(signedKey.KeyExpiration) {
-		return types.ErrValidateTime
+		return ErrValidateTime
 	}
 
 	if err := verifyMessageSignature(signedKey.KeyValue, token, receipientId); err != nil {
@@ -53,7 +53,7 @@ func VerifySignature(token types.Token, keyValues []string, receipientId string)
 func verifyIntermediateSigningKey(token types.Token, keyValues []string) error {
 	signatures := token.IntermediateSigningKey.Signatures
 	signedKey := token.IntermediateSigningKey.SignedKey
-	signedData := ConstructSignature(types.SENDER, token.ProtocolVersion, signedKey)
+	signedData := ConstructSignature(GooglePaySenderID, token.ProtocolVersion, signedKey)
 	for _, key := range keyValues {
 		var pk *PublicKey
 		publicKey, err := pk.LoadPublicKey(key)
@@ -65,7 +65,7 @@ func verifyIntermediateSigningKey(token types.Token, keyValues []string) error {
 			if err != nil {
 				return err
 			}
-			verifyer, err := subsig.NewECDSAVerifierFromPublicKey(types.ALGORITHM, types.ENCODING, publicKey)
+			verifyer, err := subsig.NewECDSAVerifierFromPublicKey(GooglePaySHA256HashAlgorithm, GooglePayDEREncoding, publicKey)
 			if err != nil {
 				return err
 			}
@@ -75,7 +75,7 @@ func verifyIntermediateSigningKey(token types.Token, keyValues []string) error {
 			return nil
 		}
 	}
-	return types.ErrVerifySignature
+	return ErrVerifySignature
 }
 
 func verifyMessageSignature(keyValue string, token types.Token, receipientId string) error {
@@ -85,8 +85,8 @@ func verifyMessageSignature(keyValue string, token types.Token, receipientId str
 		return err
 	}
 	signature, _ := Base64Decode(token.Signature)
-	signedData := ConstructSignature(types.SENDER, receipientId, token.ProtocolVersion, token.SignedMessage)
-	ecdsaV, err := subsig.NewECDSAVerifierFromPublicKey(types.ALGORITHM, types.ENCODING, publicKey)
+	signedData := ConstructSignature(GooglePaySenderID, receipientId, token.ProtocolVersion, token.SignedMessage)
+	ecdsaV, err := subsig.NewECDSAVerifierFromPublicKey(GooglePaySHA256HashAlgorithm, GooglePayDEREncoding, publicKey)
 	if err != nil {
 		return err
 	}

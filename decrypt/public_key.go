@@ -25,15 +25,14 @@ import (
 	"crypto/x509"
 
 	"github.com/google/tink/go/hybrid/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
 type PublicKey struct{}
 
 func (pk *PublicKey) LoadEphemeralPublicKey(base64PublicKey string) (*subtle.ECPoint, error) {
 	decoded, _ := Base64Decode(base64PublicKey)
-	curve, _ := subtle.GetCurve(types.CURVE)
-	pubKey, _ := subtle.PointDecode(curve, types.FORMAT, decoded)
+	curve, _ := subtle.GetCurve(GooglePayECCType)
+	pubKey, _ := subtle.PointDecode(curve, GooglePayUncompressedFormat, decoded)
 	return pubKey, nil
 }
 
@@ -45,7 +44,7 @@ func (pk *PublicKey) LoadPublicKey(base64PublicKey string) (*ecdsa.PublicKey, er
 	}
 	publicKey, ok := pub.(*ecdsa.PublicKey)
 	if !ok {
-		return nil, types.ErrPublicKey
+		return nil, ErrPublicKey
 	}
 	return publicKey, nil
 }

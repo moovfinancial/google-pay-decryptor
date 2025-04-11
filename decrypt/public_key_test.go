@@ -29,12 +29,11 @@ import (
 
 	"github.com/google/tink/go/hybrid/subtle"
 	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadEphemeralPublicKey(t *testing.T) {
-	curve, err := subtle.GetCurve(types.CURVE)
+	curve, err := subtle.GetCurve(decrypt.GooglePayECCType)
 	if err != nil {
 		t.Error(err)
 	}
@@ -43,7 +42,7 @@ func TestLoadEphemeralPublicKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	encoded, err := subtle.PointEncode(curve, types.FORMAT, privKey.PublicKey.Point)
+	encoded, err := subtle.PointEncode(curve, decrypt.GooglePayUncompressedFormat, privKey.PublicKey.Point)
 	if err != nil {
 		t.Error(err)
 	}
@@ -61,7 +60,7 @@ func TestLoadEphemeralPublicKey(t *testing.T) {
 }
 
 func TestLoadPublicKey(t *testing.T) {
-	curve, _ := subtle.GetCurve(types.CURVE)
+	curve, _ := subtle.GetCurve(decrypt.GooglePayECCType)
 	generated, _ := subtle.GenerateECDHKeyPair(curve)
 	converted := &ecdsa.PublicKey{
 		Curve: elliptic.P256(),

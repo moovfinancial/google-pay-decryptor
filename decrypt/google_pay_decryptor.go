@@ -33,8 +33,13 @@ import (
 
 // https://developers.google.com/pay/api/processors/guides/implementation/validate-decryption-google
 const (
-	TestRootKeysUrl       = "https://payments.developers.google.com/paymentmethodtoken/test/keys.json"
-	ProductionRootKeysUrl = "https://payments.developers.google.com/paymentmethodtoken/keys.json"
+	TestRootKeysUrl              = "https://payments.developers.google.com/paymentmethodtoken/test/keys.json"
+	ProductionRootKeysUrl        = "https://payments.developers.google.com/paymentmethodtoken/keys.json"
+	GooglePaySenderID            = "Google"
+	GooglePayECCType             = "NIST_P256"
+	GooglePayUncompressedFormat  = "UNCOMPRESSED"
+	GooglePaySHA256HashAlgorithm = "SHA256"
+	GooglePayDEREncoding         = "DER"
 )
 
 // HTTPClient is an interface for making HTTP requests
@@ -70,7 +75,7 @@ func NewGooglePayDecryptor() (*GooglePayDecryptor, error) {
 	recipientId := os.Getenv("RECIPIENTID")
 	privateKey := os.Getenv("PRIVATEKEY")
 	if rootkeys == nil || recipientId == "" || privateKey == "" {
-		return nil, types.ErrLoadingKeys
+		return nil, ErrLoadingKeys
 	}
 	return New(rootkeys, recipientId, privateKey), nil
 }
@@ -82,7 +87,7 @@ func NewWithRootKeysFromGoogle(environment string, recipientId string, privateKe
 	}
 
 	if rootkeys == nil || recipientId == "" || privateKey == "" {
-		return nil, types.ErrLoadingKeys
+		return nil, ErrLoadingKeys
 	}
 	return New(rootkeys, recipientId, privateKey), nil
 }
@@ -131,7 +136,7 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 
 	// check time and verify signature
 	if !CheckTime(rootSigningKeys.KeyExpiration) {
-		return types.Decrypted{}, types.ErrValidateTime
+		return types.Decrypted{}, ErrValidateTime
 	}
 
 	// derive mac and encryption keys

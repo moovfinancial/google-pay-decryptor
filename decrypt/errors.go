@@ -18,10 +18,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package types
+package decrypt
 
-const SENDER = "Google"
-const CURVE = "NIST_P256"
-const FORMAT = "UNCOMPRESSED"
-const ALGORITHM = "SHA256"
-const ENCODING = "DER"
+import (
+	"errors"
+)
+
+var (
+	ErrRootKeys           = errors.New("an error is occured while filtering root keys")
+	ErrParseJson          = errors.New("cannot find ECv2 in parsed jsonfile")
+	ErrProtocolV          = errors.New("only ECv2-signed tokens are supported")
+	ErrValidateTime       = errors.New("failed checking expiration date")
+	ErrPrivateKey         = errors.New("failed loading private key")
+	ErrPublicKey          = errors.New("failed loading public key")
+	ErrTyping             = errors.New("error while typing")
+	ErrVerifySignature    = errors.New("could not verify intermediate signing key signature")
+	ErrLengthDoesnotMatch = errors.New("length of key does not match")
+	ErrLoadingKeys        = errors.New("please call Init() function to initialize keys")
+	ErrVerifyMac          = errors.New("failed to verify message HMAC")
+)

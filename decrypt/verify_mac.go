@@ -22,14 +22,13 @@ package decrypt
 
 import (
 	"github.com/google/tink/go/mac/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
 func VerifyMessageHmac(macKey []byte, tag string, encryptedMessage string) error {
 	tagDecoded, _ := Base64Decode(tag)
 	encryptedMessageDecoded, _ := Base64Decode(encryptedMessage)
 
-	verifyer, err := subtle.NewHMAC(types.ALGORITHM, macKey, uint32(len(tagDecoded)))
+	verifyer, err := subtle.NewHMAC(GooglePaySHA256HashAlgorithm, macKey, uint32(len(tagDecoded)))
 	if err != nil {
 		return err
 	}
