@@ -27,6 +27,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
@@ -50,24 +51,34 @@ type HTTPClient interface {
 // DefaultHTTPClient is the default HTTP client used for making requests
 var DefaultHTTPClient HTTPClient = &http.Client{}
 
+// KeyEntry represents a private key with metadata
+type KeyEntry struct {
+	Key        string    // The actual private key in PKCS8 format
+	CreatedAt  time.Time // When the key was created
+	IsActive   bool      // Whether this key is currently active
+	Identifier string    // Optional identifier for the key
+}
+
 type GooglePayDecryptor struct {
 	rootKeys    []byte
 	recipientId string
-	privateKey  string
+	privateKeys []KeyEntry // Slice of private keys, ordered by priority
 }
 
 func New(rootKeys []byte, recipientId string, privateKey string) *GooglePayDecryptor {
+	keys := []KeyEntry{
+		{
+			Key:        privateKey,
+			CreatedAt:  time.Now(),
+			IsActive:   true,
+			Identifier: "primary",
+		},
+	}
 	return &GooglePayDecryptor{
 		rootKeys:    rootKeys,
 		recipientId: recipientId,
-		privateKey:  privateKey,
+		privateKeys: keys,
 	}
-}
-
-func Init(rootKeys []byte, recipientId string, privateKey string) {
-	os.Setenv("ROOTKEYS", string(rootKeys))
-	os.Setenv("RECIPIENTID", recipientId)
-	os.Setenv("PRIVATEKEY", privateKey)
 }
 
 func NewGooglePayDecryptor() (*GooglePayDecryptor, error) {
@@ -90,6 +101,52 @@ func NewWithRootKeysFromGoogle(environment string, recipientId string, privateKe
 		return nil, ErrLoadingKeys
 	}
 	return New(rootkeys, recipientId, privateKey), nil
+}
+
+// AddPrivateKey adds a new private key to the decryptor
+func (g *GooglePayDecryptor) AddPrivateKey(key string, identifier string) error {
+	if key == "" {
+		return errors.New("empty key")
+	}
+
+	// Check for duplicate identifier
+	for _, existingKey := range g.privateKeys {
+		if existingKey.Identifier == identifier {
+			return fmt.Errorf("duplicate identifier: %s", identifier)
+		}
+	}
+
+	newKey := KeyEntry{
+		Key:        key,
+		CreatedAt:  time.Now(),
+		IsActive:   true,
+		Identifier: identifier,
+	}
+
+	g.privateKeys = append(g.privateKeys, newKey)
+	return nil
+}
+
+// SetPrivateKeyActive sets the active state of a key by its identifier
+func (g *GooglePayDecryptor) SetPrivateKeyActive(identifier string, active bool) error {
+	for i := range g.privateKeys {
+		if g.privateKeys[i].Identifier == identifier {
+			g.privateKeys[i].IsActive = active
+			return nil
+		}
+	}
+	return fmt.Errorf("key with identifier %s not found", identifier)
+}
+
+// GetActivePrivateKeys returns all active private keys
+func (g *GooglePayDecryptor) GetActivePrivateKeys() []KeyEntry {
+	var activeKeys []KeyEntry
+	for _, key := range g.privateKeys {
+		if key.IsActive {
+			activeKeys = append(activeKeys, key)
+		}
+	}
+	return activeKeys
 }
 
 // FetchGoogleRootKeys retrieves the root keys from Google's servers for the specified environment.
@@ -139,33 +196,51 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 		return types.Decrypted{}, ErrValidateTime
 	}
 
-	// derive mac and encryption keys
-	mac, encryptionKey, err := DeriveKeys(token, g.privateKey)
-	if err != nil {
-		return types.Decrypted{}, err
-	}
-
-	signedMessage, _ := token.UnmarshalSignedMessage(token.SignedMessage)
-	// verify mac
-	if err := VerifyMessageHmac(mac, signedMessage.Tag, signedMessage.EncryptedMessage); err != nil {
-		return types.Decrypted{}, err
-	}
-
-	// Decode message with encryptionKey
-	decodedMessage, err := Decode(encryptionKey, signedMessage.EncryptedMessage)
-	if err != nil {
-		return types.Decrypted{}, err
-	}
-
-	var decrypted types.Decrypted
-	err = json.Unmarshal(decodedMessage, &decrypted)
-	if err != nil {
-		var newError string
-		if e, ok := err.(*json.SyntaxError); ok {
-			newError = fmt.Sprintf("syntax error at byte offset %d", e.Offset)
+	// Try each active key in sequence
+	var lastErr error
+	for _, keyEntry := range g.privateKeys {
+		if !keyEntry.IsActive {
+			continue
 		}
-		return types.Decrypted{}, errors.New(newError)
+
+		// derive mac and encryption keys
+		mac, encryptionKey, err := DeriveKeys(token, keyEntry.Key)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		signedMessage, _ := token.UnmarshalSignedMessage(token.SignedMessage)
+		// verify mac
+		if err := VerifyMessageHmac(mac, signedMessage.Tag, signedMessage.EncryptedMessage); err != nil {
+			lastErr = err
+			continue
+		}
+
+		// Decode message with encryptionKey
+		decodedMessage, err := Decode(encryptionKey, signedMessage.EncryptedMessage)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		var decrypted types.Decrypted
+		err = json.Unmarshal(decodedMessage, &decrypted)
+		if err != nil {
+			var newError string
+			if e, ok := err.(*json.SyntaxError); ok {
+				newError = fmt.Sprintf("syntax error at byte offset %d", e.Offset)
+			}
+			lastErr = errors.New(newError)
+			continue
+		}
+
+		return decrypted, nil
 	}
 
-	return decrypted, nil
+	// If we get here, none of the keys worked
+	if lastErr != nil {
+		return types.Decrypted{}, fmt.Errorf("failed to decrypt with any key: %w", lastErr)
+	}
+	return types.Decrypted{}, errors.New("no active keys available for decryption")
 }

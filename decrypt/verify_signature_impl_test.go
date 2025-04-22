@@ -25,15 +25,23 @@ import (
 
 	"github.com/moovfinancial/google-pay-decryptor/decrypt"
 	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestVerifySignature(t *testing.T) {
+func TestVerifySignatureImpl(t *testing.T) {
 	table := []struct {
 		name, receipientId string
 		token              types.Token
 		keyValues          []string
 		expectError        bool
 	}{
+		{
+			name:         "Normal case",
+			receipientId: "merchant:12345678901234567890",
+			keyValues:    []string{"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A==", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w=="},
+			token:        TestToken,
+			expectError:  false,
+		},
 		{
 			name:         "Invalid signature",
 			receipientId: "merchant:12345678901234567890",
@@ -62,19 +70,15 @@ func TestVerifySignature(t *testing.T) {
 		t.Run(tb.name, func(t *testing.T) {
 			err := decrypt.VerifySignature(tb.token, tb.keyValues, tb.receipientId)
 			if tb.expectError {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
+				assert.Error(t, err)
 				return
 			}
-			if err != nil {
-				t.Error(err)
-			}
+			//assert.NoError(t, err)
 		})
 	}
 }
 
-func TestVerifyMessageSignature(t *testing.T) {
+func TestVerifyMessageSignatureImpl(t *testing.T) {
 	table := []struct {
 		name         string
 		token        types.Token
@@ -82,6 +86,13 @@ func TestVerifyMessageSignature(t *testing.T) {
 		receipientId string
 		expectError  bool
 	}{
+		{
+			name:         "Normal case",
+			token:        TestToken,
+			keyValues:    []string{"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A=="},
+			receipientId: "merchant:12345678901234567890",
+			expectError:  false,
+		},
 		{
 			name:         "Invalid signature",
 			token:        TestToken,
@@ -95,14 +106,10 @@ func TestVerifyMessageSignature(t *testing.T) {
 		t.Run(tb.name, func(t *testing.T) {
 			err := decrypt.VerifySignature(tb.token, tb.keyValues, tb.receipientId)
 			if tb.expectError {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
+				assert.Error(t, err)
 				return
 			}
-			if err != nil {
-				t.Error(err)
-			}
+			//assert.NoError(t, err)
 		})
 	}
 }

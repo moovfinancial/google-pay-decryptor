@@ -2,3 +2,4 @@ vendor/
 .DS_Store
 pk8.pem
 keys/
+*.pem

@@ -31,6 +31,7 @@ import (
 var KeyExp = fmt.Sprintf("%d", (time.Now().Unix()+86400)*1000)
 var RandomBytes = random.GetRandomBytes(64)
 var TestRootKeys = `{"keys":[{"keyValue":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX\/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4\/A==","protocolVersion":"ECv1"},{"keyValue":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap\/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==","protocolVersion":"ECv2","keyExpiration":"2154841200000"},{"keyValue":"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap\/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==","protocolVersion":"ECv2SigningOnly","keyExpiration":"2154841200000"}]}`
+
 var TestToken = types.Token{
 	ProtocolVersion: "ECv2",
 	Signature:       "MEQCICgayPPjbzuvzFN/2/7gPxIYHIROaouYd0aegk5xuVmRAiB7X5ksxyhmGi1tx+nnrlAPnlqpX0fy/vlFfexxd1s1tA==",
