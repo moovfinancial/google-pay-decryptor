@@ -43,7 +43,7 @@ func VerifySignature(token types.Token, keyValues []string, receipientId string)
 		return ErrValidateTime
 	}
 
-	if err := verifyMessageSignature(signedKey.KeyValue, token, receipientId); err != nil {
+	if err := VerifyMessageSignature(signedKey.KeyValue, token, receipientId); err != nil {
 		return err
 	}
 
@@ -78,7 +78,7 @@ func verifyIntermediateSigningKey(token types.Token, keyValues []string) error {
 	return ErrVerifySignature
 }
 
-func verifyMessageSignature(keyValue string, token types.Token, receipientId string) error {
+func VerifyMessageSignature(keyValue string, token types.Token, receipientId string) error {
 	var pk PublicKey
 	publicKey, err := pk.LoadPublicKey(keyValue)
 	if err != nil {

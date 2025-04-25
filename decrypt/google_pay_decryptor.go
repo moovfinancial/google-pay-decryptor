@@ -184,16 +184,16 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 	var rootKeys RootSigningKey
 	rootSigningKeys, keyValues, err := rootKeys.Filter(g.rootKeys)
 	if err != nil {
-		return types.Decrypted{}, err
+		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", err)
 	}
 
 	if err := VerifySignature(token, keyValues, g.recipientId); err != nil {
-		return types.Decrypted{}, err
+		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", err)
 	}
 
 	// check time and verify signature
 	if !CheckTime(rootSigningKeys.KeyExpiration) {
-		return types.Decrypted{}, ErrValidateTime
+		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", ErrValidateTime)
 	}
 
 	// Try each active key in sequence
