@@ -33,12 +33,7 @@ func VerifyMessageHmac(macKey []byte, tag string, encryptedMessage string) error
 		return err
 	}
 
-	mac, err := verifyer.ComputeMAC(encryptedMessageDecoded)
-	if err != nil {
-		return err
-	}
-
-	if err := verifyer.VerifyMAC(mac, encryptedMessageDecoded); err != nil {
+	if err := verifyer.VerifyMAC(tagDecoded, encryptedMessageDecoded); err != nil {
 		return err
 	}
 	return nil
