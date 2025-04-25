@@ -85,7 +85,7 @@ if err != nil {
   return
 }
 
-// Create a new GooglePayDecryptor with the private key
+// Create a new GooglePayDecryptor with the private key and auto-fetch latest Google Pay Root Signing Keys
 decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
 if err != nil {
   t.Errorf("failed to create decryptor: %v", err)
