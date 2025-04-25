@@ -109,11 +109,22 @@ func (g *GooglePayDecryptor) AddPrivateKey(key string, identifier string) error 
 		return errors.New("empty key")
 	}
 
+	if identifier == "" {
+		return errors.New("empty identifier")
+	}
+
 	// Check for duplicate identifier
 	for _, existingKey := range g.privateKeys {
 		if existingKey.Identifier == identifier {
 			return fmt.Errorf("duplicate identifier: %s", identifier)
 		}
+	}
+
+	// Validate key format
+	var privK PrivateKey
+	_, err := privK.LoadKey(key)
+	if err != nil {
+		return fmt.Errorf("invalid key format: %w", err)
 	}
 
 	newKey := KeyEntry{

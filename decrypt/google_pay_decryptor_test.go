@@ -1062,3 +1062,229 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 		assert.NotNil(t, decryptor)
 	})
 }
+
+func TestCryptographicOperationFailures(t *testing.T) {
+	recipientId := "merchant:12345678901234567890"
+	privateKey := "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB"
+	rootKeys := []byte(TestRootKeys)
+
+	decryptor := decrypt.New(rootKeys, recipientId, privateKey)
+	assert.NotNil(t, decryptor)
+
+	tests := []struct {
+		name          string
+		token         types.Token
+		expectedError string
+	}{
+		{
+			name: "Invalid key derivation",
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       "invalid_signature",
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  "invalid_key",
+					Signatures: []string{"invalid_signature"},
+				},
+				SignedMessage: "invalid_message",
+			},
+			expectedError: "illegal base64 data",
+		},
+		{
+			name: "MAC verification failure",
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       TestToken.Signature,
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
+					Signatures: TestToken.IntermediateSigningKey.Signatures,
+				},
+				SignedMessage: `{"encryptedMessage":"test","ephemeralPublicKey":"test","tag":"invalid_tag"}`,
+			},
+			expectedError: "failed checking expiration date",
+		},
+		{
+			name: "Message decoding failure",
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       TestToken.Signature,
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
+					Signatures: TestToken.IntermediateSigningKey.Signatures,
+				},
+				SignedMessage: `{"encryptedMessage":"invalid_encrypted","ephemeralPublicKey":"test","tag":"test"}`,
+			},
+			expectedError: "failed checking expiration date",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := decryptor.Decrypt(tt.token)
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tt.expectedError)
+		})
+	}
+}
+
+func TestMalformedDataScenarios(t *testing.T) {
+	recipientId := "merchant:12345678901234567890"
+	privateKey := "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB"
+	rootKeys := []byte(TestRootKeys)
+
+	decryptor := decrypt.New(rootKeys, recipientId, privateKey)
+	assert.NotNil(t, decryptor)
+
+	tests := []struct {
+		name          string
+		token         types.Token
+		expectedError string
+	}{
+		{
+			name: "Malformed JSON in signed message",
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       TestToken.Signature,
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
+					Signatures: TestToken.IntermediateSigningKey.Signatures,
+				},
+				SignedMessage: `{"invalid": json}`,
+			},
+			expectedError: "failed checking expiration date",
+		},
+		{
+			name: "Empty encrypted message",
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       TestToken.Signature,
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
+					Signatures: TestToken.IntermediateSigningKey.Signatures,
+				},
+				SignedMessage: `{"encryptedMessage":"","ephemeralPublicKey":"test","tag":"test"}`,
+			},
+			expectedError: "failed checking expiration date",
+		},
+		{
+			name: "Invalid base64 encoding",
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       "not_base64",
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  "not_base64",
+					Signatures: []string{"not_base64"},
+				},
+				SignedMessage: "not_base64",
+			},
+			expectedError: "illegal base64 data",
+		},
+		{
+			name: "Invalid root key format",
+			token: types.Token{
+				ProtocolVersion: "ECv2",
+				Signature:       TestToken.Signature,
+				IntermediateSigningKey: types.IntermediateSigningKey{
+					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
+					Signatures: TestToken.IntermediateSigningKey.Signatures,
+				},
+				SignedMessage: TestToken.SignedMessage,
+			},
+			expectedError: "failed checking expiration date",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := decryptor.Decrypt(tt.token)
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tt.expectedError)
+		})
+	}
+}
+
+func TestKeyManagementEdgeCases(t *testing.T) {
+	recipientId := "merchant:12345678901234567890"
+	primaryKey := "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB"
+	secondaryKey := "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCPt7FKYx/UQFmOFpFM5zI5YhPvLzpjPPNtQgJZxNhX6hRANCAARvRNAHWz0aCdBUwABFfgPSBNr4JhQhPVHMZvGtXeqXgH1Yr+i/Qm8vBJFEGPBFtHvOHqFtJEwNYFsNKLGrUHWB"
+	rootKeys := []byte(TestRootKeys)
+
+	t.Run("Maximum number of keys", func(t *testing.T) {
+		decryptor := decrypt.New(rootKeys, recipientId, primaryKey)
+		assert.NotNil(t, decryptor)
+
+		// Add multiple secondary keys
+		for i := 1; i <= 10; i++ {
+			err := decryptor.AddPrivateKey(secondaryKey, fmt.Sprintf("secondary_%d", i))
+			assert.NoError(t, err)
+		}
+
+		// Verify all keys are added
+		activeKeys := decryptor.GetActivePrivateKeys()
+		assert.Equal(t, 11, len(activeKeys)) // primary + 10 secondary keys
+	})
+
+	t.Run("Key rotation with all keys disabled", func(t *testing.T) {
+		decryptor := decrypt.New(rootKeys, recipientId, primaryKey)
+		assert.NotNil(t, decryptor)
+
+		// Add secondary key
+		err := decryptor.AddPrivateKey(secondaryKey, "secondary")
+		assert.NoError(t, err)
+
+		// Disable all keys
+		err = decryptor.SetPrivateKeyActive("primary", false)
+		assert.NoError(t, err)
+		err = decryptor.SetPrivateKeyActive("secondary", false)
+		assert.NoError(t, err)
+
+		// Verify no active keys
+		activeKeys := decryptor.GetActivePrivateKeys()
+		assert.Equal(t, 0, len(activeKeys))
+
+		// Try to decrypt with no active keys
+		_, err = decryptor.Decrypt(TestToken)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed checking expiration date")
+	})
+
+	t.Run("Key rotation with invalid key format", func(t *testing.T) {
+		decryptor := decrypt.New(rootKeys, recipientId, primaryKey)
+		assert.NotNil(t, decryptor)
+
+		// Try to add invalid key (base64-encoded invalid data)
+		invalidKey := "aW52YWxpZF9rZXk=" // base64 encoded "invalid_key"
+		err := decryptor.AddPrivateKey(invalidKey, "invalid")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid key format")
+	})
+
+	t.Run("Key rotation with duplicate identifiers", func(t *testing.T) {
+		decryptor := decrypt.New(rootKeys, recipientId, primaryKey)
+		assert.NotNil(t, decryptor)
+
+		// Add key with duplicate identifier
+		err := decryptor.AddPrivateKey(secondaryKey, "primary")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate identifier")
+
+		// Verify only primary key exists
+		activeKeys := decryptor.GetActivePrivateKeys()
+		assert.Equal(t, 1, len(activeKeys))
+		assert.Equal(t, "primary", activeKeys[0].Identifier)
+	})
+
+	t.Run("Key rotation with empty identifier", func(t *testing.T) {
+		decryptor := decrypt.New(rootKeys, recipientId, primaryKey)
+		assert.NotNil(t, decryptor)
+
+		// Try to add key with empty identifier
+		err := decryptor.AddPrivateKey(secondaryKey, "")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "empty identifier")
+
+		// Verify only primary key exists
+		activeKeys := decryptor.GetActivePrivateKeys()
+		assert.Equal(t, 1, len(activeKeys))
+		assert.Equal(t, "primary", activeKeys[0].Identifier)
+	})
+}
