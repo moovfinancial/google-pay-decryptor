@@ -30,9 +30,21 @@ import (
 type PublicKey struct{}
 
 func (pk *PublicKey) LoadEphemeralPublicKey(base64PublicKey string) (*subtle.ECPoint, error) {
-	decoded, _ := Base64Decode(base64PublicKey)
-	curve, _ := subtle.GetCurve(GooglePayECCType)
-	pubKey, _ := subtle.PointDecode(curve, GooglePayUncompressedFormat, decoded)
+	decoded, err := Base64Decode(base64PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	curve, err := subtle.GetCurve(GooglePayECCType)
+	if err != nil {
+		return nil, err
+	}
+
+	pubKey, err := subtle.PointDecode(curve, GooglePayUncompressedFormat, decoded)
+	if err != nil {
+		return nil, err
+	}
+
 	return pubKey, nil
 }
 

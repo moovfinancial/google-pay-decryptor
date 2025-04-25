@@ -109,3 +109,24 @@ func TestLoadPublicKey_InvalidKeyType(t *testing.T) {
 		t.Errorf("expected ErrPublicKey, got %v", err)
 	}
 }
+
+func TestLoadEphemeralPublicKey_InvalidCurve(t *testing.T) {
+	// Create a valid base64 string with the correct point format and coordinates
+	data := make([]byte, 65)
+	data[0] = 0x04 // Uncompressed point format
+	for i := 1; i < 65; i++ {
+		data[i] = byte(i) // Fill with some valid-looking data
+	}
+	validBase64 := base64.StdEncoding.EncodeToString(data)
+
+	// Create a new PublicKey instance
+	pk := &decrypt.PublicKey{}
+
+	// Call LoadEphemeralPublicKey which internally uses GetCurve
+	_, err := pk.LoadEphemeralPublicKey(validBase64)
+
+	// Verify that the error is propagated
+	if err == nil {
+		t.Fatal("expected error to be propagated")
+	}
+}
