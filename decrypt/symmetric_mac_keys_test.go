@@ -51,6 +51,30 @@ func TestDeriveKeys(t *testing.T) {
 			encryptionKey:     []byte{0, 0, 0},
 			expectError:       true,
 		},
+		{
+			name:              "Empty Private Key",
+			prviateKeyEncoded: "",
+			token:             TestToken,
+			mac:               []byte{0, 0},
+			encryptionKey:     []byte{0, 0, 0},
+			expectError:       true,
+		},
+		{
+			name:              "Empty Token",
+			prviateKeyEncoded: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB",
+			token:             types.Token{},
+			mac:               []byte{0, 0},
+			encryptionKey:     []byte{0, 0, 0},
+			expectError:       true,
+		},
+		{
+			name:              "Invalid Token Protocol Version",
+			prviateKeyEncoded: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB",
+			token:             types.Token{ProtocolVersion: "InvalidVersion"},
+			mac:               []byte{0, 0},
+			encryptionKey:     []byte{0, 0, 0},
+			expectError:       true,
+		},
 	}
 
 	for _, tb := range table {

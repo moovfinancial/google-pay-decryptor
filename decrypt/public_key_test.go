@@ -23,8 +23,10 @@ package decrypt_test
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"math/big"
 	"testing"
 
 	"github.com/google/tink/go/hybrid/subtle"
@@ -81,5 +83,29 @@ func TestLoadPublicKey(t *testing.T) {
 
 	if !assert.Equal(t, converted, publicKey) {
 		t.Errorf("loaded key is incorrect or does not match")
+	}
+}
+
+func TestLoadPublicKey_InvalidKeyType(t *testing.T) {
+	// Create an RSA public key instead of ECDSA
+	rsaKey := &rsa.PublicKey{
+		N: big.NewInt(123),
+		E: 65537,
+	}
+
+	encoded, err := x509.MarshalPKIXPublicKey(rsaKey)
+	if err != nil {
+		t.Fatalf("error marshaling RSA key: %s", err)
+	}
+
+	encodedBase64 := base64.StdEncoding.EncodeToString(encoded)
+	var pk decrypt.PublicKey
+	_, err = pk.LoadPublicKey(encodedBase64)
+
+	if err == nil {
+		t.Fatal("expected error when loading non-ECDSA key")
+	}
+	if err != decrypt.ErrPublicKey {
+		t.Errorf("expected ErrPublicKey, got %v", err)
 	}
 }

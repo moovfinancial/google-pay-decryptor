@@ -54,12 +54,22 @@ func TestGenerateMacKeyAndEncryptionKey(t *testing.T) {
 			mac:          RandomBytes[32:],
 			symmetricKey: RandomBytes[:32],
 		},
+		{
+			name:         "Invalid length",
+			sharedSecret: RandomBytes[:63], // One byte short of required length
+			mac:          nil,
+			symmetricKey: nil,
+		},
 	}
 
 	for _, tb := range table {
 		t.Run(tb.name, func(t *testing.T) {
 			derivedMac, derivedSymmetric, err := decrypt.GenerateMacKeyAndEncryptionKey(tb.sharedSecret)
 			if err != nil {
+				if tb.name == "Invalid length" {
+					assert.ErrorIs(t, err, decrypt.ErrLengthDoesnotMatch)
+					return
+				}
 				t.Error(err)
 			}
 

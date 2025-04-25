@@ -23,6 +23,8 @@ package decrypt_test
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"testing"
@@ -65,5 +67,50 @@ func TestBadKey(t *testing.T) {
 	_, err := privK.LoadKey("badkey")
 	if err == nil {
 		t.Fatalf("expected error loading key")
+	}
+}
+
+func TestLoadKeyInvalidBase64(t *testing.T) {
+	var privK decrypt.PrivateKey
+	_, err := privK.LoadKey("not-a-valid-base64-string")
+	if err == nil {
+		t.Fatalf("expected error for invalid base64 string")
+	}
+}
+
+func TestLoadKeyInvalidPKCS8(t *testing.T) {
+	// Create a valid base64 string that isn't a valid PKCS8 private key
+	invalidKey := base64.StdEncoding.EncodeToString([]byte("not-a-valid-pkcs8-key"))
+
+	var privK decrypt.PrivateKey
+	_, err := privK.LoadKey(invalidKey)
+	if err == nil {
+		t.Fatalf("expected error for invalid PKCS8 key")
+	}
+}
+
+func TestLoadKeyNonECDSAKey(t *testing.T) {
+	// Generate an RSA private key
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("failed to generate RSA key: %v", err)
+	}
+
+	// Marshal it to PKCS8 format
+	encoded, err := x509.MarshalPKCS8PrivateKey(rsaKey)
+	if err != nil {
+		t.Fatalf("failed to marshal RSA key: %v", err)
+	}
+
+	// Encode to base64
+	encodedBase64 := base64.StdEncoding.EncodeToString(encoded)
+
+	var privK decrypt.PrivateKey
+	_, err = privK.LoadKey(encodedBase64)
+	if err == nil {
+		t.Fatalf("expected error for non-ECDSA key")
+	}
+	if err != decrypt.ErrPrivateKey {
+		t.Fatalf("expected ErrPrivateKey, got %v", err)
 	}
 }
