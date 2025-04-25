@@ -194,10 +194,10 @@ func TestDecrypt(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "Normal case",
+			name:        "Normal case, but Expired",
 			token:       TestToken,
 			decrypted:   TestDecrypted,
-			expectError: false,
+			expectError: true,
 		},
 		{
 			name: "Invalid signature",
@@ -239,10 +239,11 @@ func TestDecrypt(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			fmt.Println(decrypted)
-			// Tests will fail because the payload is not valid
-			//assert.NoError(t, err)
-			//assert.Equal(t, tb.decrypted, decrypted)
+
+			// Success case
+			//fmt.Println(decrypted)
+			assert.NoError(t, err)
+			assert.Equal(t, tb.decrypted, decrypted)
 		})
 	}
 }
