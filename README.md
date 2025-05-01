@@ -92,7 +92,7 @@ if err != nil {
 }
 
 // Decrypt the test payload
-output, err = decryptor.Decrypt(input)
+output, err = decryptor.DecryptWithMerchantId(input, "googletest")  // Replace googletest with the Gateway Merchant ID Assigned to the Merchant
 if err != nil {
   t.Errorf("failed to decrypt: %v", err)
 }
