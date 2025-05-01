@@ -632,7 +632,8 @@ func TestDecryptionProcess(t *testing.T) {
 		IntermediateSigningKey: TestToken.IntermediateSigningKey,
 		SignedMessage:          "eyJpbnZhbGlkIjoianNvbiJ9", // Base64 encoded invalid JSON
 	}
-	_, err = decryptor.Decrypt(invalidJSON)
+	//_, err = decryptor.Decrypt(invalidJSON)
+	_, err = decryptor.DecryptWithMerchantId(invalidJSON, "googletest")
 	assert.Error(t, err)
 }
 
@@ -1101,7 +1102,7 @@ func TestCryptographicOperationFailures(t *testing.T) {
 				},
 				SignedMessage: `{"encryptedMessage":"test","ephemeralPublicKey":"test","tag":"invalid_tag"}`,
 			},
-			expectedError: "failed checking expiration date",
+			expectedError: "failed checking key expiration date",
 		},
 		{
 			name: "Message decoding failure",
@@ -1114,7 +1115,7 @@ func TestCryptographicOperationFailures(t *testing.T) {
 				},
 				SignedMessage: `{"encryptedMessage":"invalid_encrypted","ephemeralPublicKey":"test","tag":"test"}`,
 			},
-			expectedError: "failed checking expiration date",
+			expectedError: "failed checking key expiration date",
 		},
 	}
 
@@ -1151,7 +1152,7 @@ func TestMalformedDataScenarios(t *testing.T) {
 				},
 				SignedMessage: `{"invalid": json}`,
 			},
-			expectedError: "failed checking expiration date",
+			expectedError: "failed checking key expiration date",
 		},
 		{
 			name: "Empty encrypted message",
@@ -1164,7 +1165,7 @@ func TestMalformedDataScenarios(t *testing.T) {
 				},
 				SignedMessage: `{"encryptedMessage":"","ephemeralPublicKey":"test","tag":"test"}`,
 			},
-			expectedError: "failed checking expiration date",
+			expectedError: "failed checking key expiration date",
 		},
 		{
 			name: "Invalid base64 encoding",
@@ -1190,7 +1191,7 @@ func TestMalformedDataScenarios(t *testing.T) {
 				},
 				SignedMessage: TestToken.SignedMessage,
 			},
-			expectedError: "failed checking expiration date",
+			expectedError: "failed checking key expiration date",
 		},
 	}
 
@@ -1245,7 +1246,7 @@ func TestKeyManagementEdgeCases(t *testing.T) {
 		// Try to decrypt with no active keys
 		_, err = decryptor.Decrypt(TestToken)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed checking expiration date")
+		assert.Contains(t, err.Error(), "failed checking key expiration date")
 	})
 
 	t.Run("Key rotation with invalid key format", func(t *testing.T) {
