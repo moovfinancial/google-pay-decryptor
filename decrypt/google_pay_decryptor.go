@@ -190,6 +190,21 @@ func FetchGoogleRootKeys(environment string) ([]byte, error) {
 	return body, nil
 }
 
+func (g *GooglePayDecryptor) DecryptWithMerchantId(token types.Token, merchantId string) (types.Decrypted, error) {
+	// Decrypt the test payload
+	decryptedToken, err := g.Decrypt(token) // input is payload in types.Token
+	if err != nil {
+		return types.Decrypted{}, err
+	}
+
+	// Check the Merchant ID
+	if decryptedToken.GatewayMerchantId != merchantId {
+		return types.Decrypted{}, fmt.Errorf("merchant ID mismatch: %s != %s", decryptedToken.GatewayMerchantId, merchantId)
+	}
+
+	return decryptedToken, nil
+}
+
 func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error) {
 	// Load root singning keys
 	var rootKeys RootSigningKey
@@ -202,9 +217,9 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", err)
 	}
 
-	// check time and verify signature
+	// check key expiration and verify signature
 	if !CheckTime(rootSigningKeys.KeyExpiration) {
-		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", ErrValidateTime)
+		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", ErrValidateTimeKey)
 	}
 
 	// Try each active key in sequence
@@ -246,6 +261,12 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 			continue
 		}
 
+		// check message expiration
+		if !CheckTime(decrypted.MessageExpiration) {
+			return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", ErrValidateTimeMessage)
+		}
+
+		// If we get here, the message has been successfully decrypted and validated
 		return decrypted, nil
 	}
 

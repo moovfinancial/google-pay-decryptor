@@ -21,6 +21,7 @@
 package types
 
 type Decrypted struct {
+	GatewayMerchantId    string               `json:"gatewayMerchantId,omitempty"`
 	MessageExpiration    string               `json:"messageExpiration"`
 	MessageId            string               `json:"messageId"`
 	PaymentMethod        string               `json:"paymentMethod"`

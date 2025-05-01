@@ -40,7 +40,7 @@ func VerifySignature(token types.Token, keyValues []string, receipientId string)
 	}
 
 	if !CheckTime(signedKey.KeyExpiration) {
-		return ErrValidateTime
+		return ErrValidateTimeKey
 	}
 
 	if err := VerifyMessageSignature(signedKey.KeyValue, token, receipientId); err != nil {
