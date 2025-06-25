@@ -45,7 +45,7 @@ Example of a Decrypted payload:
 ```json
 {
   "messageId": "some-message-id",
-  "messageExpiration": "1759309000000"
+  "messageExpiration": "1759309000000",
   "paymentMethod": "CARD",
   "paymentMethodDetails": {
     "authMethod": "PAN_ONLY",
