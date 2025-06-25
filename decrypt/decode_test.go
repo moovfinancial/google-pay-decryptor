@@ -72,16 +72,16 @@ func TestDecode(t *testing.T) {
 
 func TestBadInputsForDecoding(t *testing.T) {
 	// Test for Bad Encoding
-	var goodKey = []byte{196, 231, 38, 149, 234, 51, 142, 186, 230, 214, 96, 243, 229, 153, 103, 74, 117, 241, 237, 135, 91, 170, 216, 167, 235, 154, 180, 28, 125, 48, 82, 44}
-	var badCiphertext = `{(())bad}`
+	goodKey := []byte{196, 231, 38, 149, 234, 51, 142, 186, 230, 214, 96, 243, 229, 153, 103, 74, 117, 241, 237, 135, 91, 170, 216, 167, 235, 154, 180, 28, 125, 48, 82, 44}
+	badCiphertext := `{(())bad}`
 	decoded, err := decrypt.Decode(goodKey, badCiphertext)
 	if err == nil {
 		t.Errorf("expected error when decrypting bad ciphertext, got nil: %v", decoded)
 	}
 
 	// Test for Bad Ciphertesxt
-	var badKey = []byte{254, 66, 119, 211, 159, 233, 74, 143, 23, 4, 196, 53}
-	var goodCiphertext = `614756736247383d`
+	badKey := []byte{254, 66, 119, 211, 159, 233, 74, 143, 23, 4, 196, 53}
+	goodCiphertext := `614756736247383d`
 	decoded, err = decrypt.Decode(badKey, goodCiphertext)
 	if err == nil {
 		t.Errorf("expected error when decrypting with bad key, got nil: %v", decoded)
