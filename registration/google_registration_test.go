@@ -37,7 +37,7 @@ func TestGoogleRegistrationPayload1(t *testing.T) {
 	}
 
 	// Create a new GooglePayDecryptor with the test private key
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 	if err != nil {
 		t.Errorf("failed to create decryptor: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestGoogleRegistrationPayload2(t *testing.T) {
 	}
 
 	// Create a new GooglePayDecryptor with the test private key
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 	if err != nil {
 		t.Errorf("failed to create decryptor: %v", err)
 	}
@@ -119,7 +119,7 @@ func TestWith2KeysPrimaryGood(t *testing.T) {
 	}
 
 	// Create a new GooglePayDecryptor with the test private key
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 	if err != nil {
 		t.Errorf("failed to create decryptor: %v", err)
 	}
@@ -168,7 +168,7 @@ func TestWith2KeysSecondaryGood(t *testing.T) {
 	}
 
 	// Create a new GooglePayDecryptor with the test private key
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 	if err != nil {
 		t.Errorf("failed to create decryptor: %v", err)
 	}
@@ -216,7 +216,7 @@ func TestWith2BadKeys(t *testing.T) {
 	}
 
 	// Create a new GooglePayDecryptor with the test private key
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 	if err != nil {
 		t.Errorf("failed to create decryptor: %v", err)
 	}
@@ -257,7 +257,7 @@ func TestWithTokenGenerator(t *testing.T) {
 	}
 
 	// Create a new GooglePayDecryptor with the test private key
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 	if err != nil {
 		t.Errorf("failed to create decryptor: %v", err)
 	}

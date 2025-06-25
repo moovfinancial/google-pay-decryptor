@@ -265,7 +265,7 @@ func TestNewWithRootKeysFromGoogle(t *testing.T) {
 		body:       []byte(TestRootKeys),
 	}
 
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", recipientId, privateKey)
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, recipientId, privateKey)
 	assert.NoError(t, err)
 	assert.NotNil(t, decryptor)
 
@@ -275,12 +275,12 @@ func TestNewWithRootKeysFromGoogle(t *testing.T) {
 	assert.Nil(t, decryptor)
 
 	// Test case 3: Empty recipient ID
-	decryptor, err = decrypt.NewWithRootKeysFromGoogle("test", "", privateKey)
+	decryptor, err = decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "", privateKey)
 	assert.Error(t, err)
 	assert.Nil(t, decryptor)
 
 	// Test case 4: Empty private key
-	decryptor, err = decrypt.NewWithRootKeysFromGoogle("test", recipientId, "")
+	decryptor, err = decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, recipientId, "")
 	assert.Error(t, err)
 	assert.Nil(t, decryptor)
 
@@ -288,7 +288,7 @@ func TestNewWithRootKeysFromGoogle(t *testing.T) {
 	decrypt.DefaultHTTPClient = &mockHTTPClient{
 		err: fmt.Errorf("connection error"),
 	}
-	decryptor, err = decrypt.NewWithRootKeysFromGoogle("test", recipientId, privateKey)
+	decryptor, err = decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, recipientId, privateKey)
 	assert.Error(t, err)
 	assert.Nil(t, decryptor)
 
@@ -296,7 +296,7 @@ func TestNewWithRootKeysFromGoogle(t *testing.T) {
 	decrypt.DefaultHTTPClient = &mockHTTPClient{
 		statusCode: http.StatusNotFound,
 	}
-	decryptor, err = decrypt.NewWithRootKeysFromGoogle("test", recipientId, privateKey)
+	decryptor, err = decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, recipientId, privateKey)
 	assert.Error(t, err)
 	assert.Nil(t, decryptor)
 }
@@ -313,7 +313,7 @@ func TestFetchGoogleRootKeys(t *testing.T) {
 		statusCode: http.StatusOK,
 		body:       []byte(TestRootKeys),
 	}
-	keys, err := decrypt.FetchGoogleRootKeys("test")
+	keys, err := decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 	assert.NoError(t, err)
 	assert.NotNil(t, keys)
 
@@ -322,7 +322,7 @@ func TestFetchGoogleRootKeys(t *testing.T) {
 		statusCode: http.StatusOK,
 		body:       []byte(TestRootKeys),
 	}
-	keys, err = decrypt.FetchGoogleRootKeys("production")
+	keys, err = decrypt.FetchGoogleRootKeys(decrypt.EnvironmentProduction)
 	assert.NoError(t, err)
 	assert.NotNil(t, keys)
 
@@ -335,7 +335,7 @@ func TestFetchGoogleRootKeys(t *testing.T) {
 	decrypt.DefaultHTTPClient = &mockHTTPClient{
 		err: fmt.Errorf("connection error"),
 	}
-	keys, err = decrypt.FetchGoogleRootKeys("test")
+	keys, err = decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 	assert.Error(t, err)
 	assert.Nil(t, keys)
 
@@ -343,7 +343,7 @@ func TestFetchGoogleRootKeys(t *testing.T) {
 	decrypt.DefaultHTTPClient = &mockHTTPClient{
 		statusCode: http.StatusNotFound,
 	}
-	keys, err = decrypt.FetchGoogleRootKeys("test")
+	keys, err = decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 	assert.Error(t, err)
 	assert.Nil(t, keys)
 }
@@ -512,13 +512,13 @@ func TestHTTPClientInterface(t *testing.T) {
 	}()
 
 	// Test successful request
-	keys, err := decrypt.FetchGoogleRootKeys("test")
+	keys, err := decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 	assert.NoError(t, err)
 	assert.NotNil(t, keys)
 
 	// Test client error
 	customClient.err = fmt.Errorf("custom error")
-	keys, err = decrypt.FetchGoogleRootKeys("test")
+	keys, err = decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 	assert.Error(t, err)
 	assert.Nil(t, keys)
 	assert.Contains(t, err.Error(), "custom error")
@@ -526,7 +526,7 @@ func TestHTTPClientInterface(t *testing.T) {
 	// Test bad response
 	customClient.err = nil
 	customClient.statusCode = http.StatusInternalServerError
-	keys, err = decrypt.FetchGoogleRootKeys("test")
+	keys, err = decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 	assert.Error(t, err)
 	assert.Nil(t, keys)
 	assert.Contains(t, err.Error(), "500")
@@ -926,7 +926,7 @@ func TestHTTPClientScenarios(t *testing.T) {
 		}
 		decrypt.DefaultHTTPClient = mockClient
 
-		_, err := decrypt.FetchGoogleRootKeys("test")
+		_, err := decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "network timeout")
 	})
@@ -938,7 +938,7 @@ func TestHTTPClientScenarios(t *testing.T) {
 		}
 		decrypt.DefaultHTTPClient = mockClient
 
-		_, err := decrypt.FetchGoogleRootKeys("test")
+		_, err := decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "500")
 	})
@@ -950,7 +950,7 @@ func TestHTTPClientScenarios(t *testing.T) {
 		}
 		decrypt.DefaultHTTPClient = mockClient
 
-		_, err := decrypt.FetchGoogleRootKeys("test")
+		_, err := decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 		assert.NoError(t, err)
 		// The error will occur when trying to use these invalid root keys
 		decryptor := decrypt.New([]byte("invalid json"), "recipient", "key")
@@ -965,7 +965,7 @@ func TestHTTPClientScenarios(t *testing.T) {
 		}
 		decrypt.DefaultHTTPClient = mockClient
 
-		_, err := decrypt.FetchGoogleRootKeys("test")
+		_, err := decrypt.FetchGoogleRootKeys(decrypt.EnvironmentTest)
 		assert.NoError(t, err)
 		// The error will occur when trying to use these empty root keys
 		decryptor := decrypt.New([]byte{}, "recipient", "key")
@@ -1100,7 +1100,7 @@ func TestCryptographicOperationFailures(t *testing.T) {
 					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
 					Signatures: TestToken.IntermediateSigningKey.Signatures,
 				},
-				SignedMessage: `{"encryptedMessage":"test","ephemeralPublicKey":"test","tag":"invalid_tag"}`,
+				SignedMessage: `{"encryptedMessage":decrypt.EnvironmentTest,"ephemeralPublicKey":decrypt.EnvironmentTest,"tag":"invalid_tag"}`,
 			},
 			expectedError: "failed checking key expiration date",
 		},
@@ -1113,7 +1113,7 @@ func TestCryptographicOperationFailures(t *testing.T) {
 					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
 					Signatures: TestToken.IntermediateSigningKey.Signatures,
 				},
-				SignedMessage: `{"encryptedMessage":"invalid_encrypted","ephemeralPublicKey":"test","tag":"test"}`,
+				SignedMessage: `{"encryptedMessage":"invalid_encrypted","ephemeralPublicKey":decrypt.EnvironmentTest,"tag":decrypt.EnvironmentTest}`,
 			},
 			expectedError: "failed checking key expiration date",
 		},
@@ -1163,7 +1163,7 @@ func TestMalformedDataScenarios(t *testing.T) {
 					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
 					Signatures: TestToken.IntermediateSigningKey.Signatures,
 				},
-				SignedMessage: `{"encryptedMessage":"","ephemeralPublicKey":"test","tag":"test"}`,
+				SignedMessage: `{"encryptedMessage":"","ephemeralPublicKey":decrypt.EnvironmentTest,"tag":decrypt.EnvironmentTest}`,
 			},
 			expectedError: "failed checking key expiration date",
 		},

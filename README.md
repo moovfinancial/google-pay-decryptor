@@ -1,5 +1,6 @@
 > **IMPORTANT**: The file library has not been through a formal code review!!!
->> Please peer review the code before using.
+>
+> Please peer-review the code before using.
 
 # Google Pay Decryptor
 
@@ -27,8 +28,8 @@ There are two main types in library:
    - [Encrypted Message Structure](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#encrypted-message)
    - [Decrypted Card Payment Method Structure](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#card)
 
-Example of a Token (encrypted payload from GooglePay):
-```
+Example of a Token (encrypted payload from Google Pay):
+```json
 {
   "protocolVersion":"ECv2",
   "signature":"MEQCIH6Q4OwQ0jAceFEkGF0JID6sJNXxOEi4r+mA7biRxqBQAiAondqoUpU/bdsrAOpZIsrHQS9nwiiNwOrr24RyPeHA0Q\u003d\u003d",
@@ -41,7 +42,7 @@ Example of a Token (encrypted payload from GooglePay):
 ```
 
 Example of a Decrypted payload:
-```
+```json
 {
   "messageId": "some-message-id",
   "messageExpiration": "1759309000000"
@@ -67,7 +68,7 @@ Load the following information:
 ### Usage
 
 The following shows a basic example to verify and decrypt a Google Pay Token payload:
-```
+```go
 var input types.Token
 var output types.Decrypted
 
@@ -86,7 +87,7 @@ if err != nil {
 }
 
 // Create a new GooglePayDecryptor with the private key and auto-fetch latest Google Pay Root Signing Keys
-decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 if err != nil {
   t.Errorf("failed to create decryptor: %v", err)
 }
@@ -126,11 +127,11 @@ During Key Rotation, the Processor must support both the old key and new key in 
 ### Usage
 
 After creating a new `GooglePayDecryptor` add the second key:
-```
-...
+```go
+// ...
 
 // Create a new GooglePayDecryptor with the private key
-decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 if err != nil {
   t.Errorf("failed to create decryptor: %v", err)
 }
@@ -138,7 +139,7 @@ if err != nil {
 // Load a 2nd Private Key for Key Rotation
 decryptor.AddPrivateKey(string(privateKeyBytesBad), "old_key")
 
-...
+// ...
 ```
 
 **NOTE:** Decryption will attempted with the first key loaded
