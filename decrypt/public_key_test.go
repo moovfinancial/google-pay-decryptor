@@ -30,8 +30,8 @@ import (
 	"testing"
 
 	"github.com/google/tink/go/hybrid/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
 	"github.com/stretchr/testify/assert"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt"
 )
 
 func TestLoadEphemeralPublicKey(t *testing.T) {

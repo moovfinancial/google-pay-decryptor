@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/google/tink/go/subtle/random"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt/types"
 )
 
 var (

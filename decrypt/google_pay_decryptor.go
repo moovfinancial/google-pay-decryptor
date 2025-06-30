@@ -29,7 +29,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt/types"
 )
 
 // https://developers.google.com/pay/api/processors/guides/implementation/validate-decryption-google

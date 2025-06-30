@@ -24,7 +24,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt"
 )
 
 func TestDecode(t *testing.T) {

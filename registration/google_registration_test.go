@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt/types"
 )
 
 // New Token Payloads can be created here: https://developers.google.com/pay/api/processors/guides/test-and-validation/token-generator

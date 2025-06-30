@@ -22,7 +22,7 @@ package decrypt_test
 import (
 	"testing"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt"
 )
 
 func TestVerifyMessageHmac(t *testing.T) {
