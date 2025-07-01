@@ -23,7 +23,7 @@ package decrypt
 import (
 	"github.com/google/tink/go/hybrid/subtle"
 	hkdf "github.com/google/tink/go/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt/types"
 )
 
 func DeriveKeys(token types.Token, privateKeyEncoded string) ([]byte, []byte, error) {

@@ -1,4 +1,4 @@
-module github.com/moovfinancial/google-pay-decryptor
+module github.com/vladyslavpavlenko/google-pay-decryptor
 
 go 1.24.0
 

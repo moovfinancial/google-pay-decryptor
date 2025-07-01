@@ -25,13 +25,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"testing"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt"
+	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt/types"
 )
 
 // RootSigningKey represents the structure of Google's root signing keys
@@ -236,12 +237,13 @@ func TestDecrypt(t *testing.T) {
 
 			decrypted, err := decryptor.Decrypt(tb.token)
 			if tb.expectError {
+				log.Println(err)
 				assert.Error(t, err)
 				return
 			}
 
 			// Success case
-			// fmt.Println(decrypted)
+			fmt.Println(decrypted)
 			assert.NoError(t, err)
 			assert.Equal(t, tb.decrypted, decrypted)
 		})
