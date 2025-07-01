@@ -79,7 +79,7 @@ func decryptToken(jsonPayload string) (types.Decrypted, error) {
 	}
 
 	// Create a new GooglePayDecryptor with the test private key
-	//decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+	// decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 	decryptor, err := decrypt.NewWithRootKeysFromGoogle("production", "gateway:moov", string(privateKeyBytes))
 	if err != nil {
 		return types.Decrypted{}, fmt.Errorf("failed to create decryptor: %v", err)

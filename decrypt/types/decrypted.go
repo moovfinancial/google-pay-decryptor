@@ -33,7 +33,8 @@ type PaymentMethodDetails struct {
 	BillingAddress   *Address          `json:"billingAddress,omitempty"`
 	CardDetails      string            `json:"cardDetails,omitempty"`
 	CardNetwork      string            `json:"cardNetwork,omitempty"`
-	Pan              string            `json:"pan"`
+	Pan              string            `json:"pan,omitempty"`
+	Dpan             string            `json:"dpan,omitempty"`
 	ExpirationMonth  int               `json:"expirationMonth"`
 	ExpirationYear   int               `json:"expirationYear"`
 	AuthMethod       string            `json:"authMethod"`

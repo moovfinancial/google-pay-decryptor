@@ -73,7 +73,7 @@ func TestVerifySignatureImpl(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			//assert.NoError(t, err)
+			// assert.NoError(t, err)
 		})
 	}
 }
@@ -109,7 +109,7 @@ func TestVerifyMessageSignatureImpl(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			//assert.NoError(t, err)
+			// assert.NoError(t, err)
 		})
 	}
 }
