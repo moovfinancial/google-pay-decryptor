@@ -25,26 +25,26 @@ import (
 )
 
 type Token struct {
-	ProtocolVersion        string                 `json:"protocolVersion" binding:"required"`
-	Signature              string                 `json:"signature" binding:"required"`
-	IntermediateSigningKey IntermediateSigningKey `json:"intermediateSigningKey" binding:"required"`
-	SignedMessage          string                 `json:"signedMessage" binding:"required"`
+	ProtocolVersion        string                 `json:"protocolVersion"`
+	Signature              string                 `json:"signature"`
+	IntermediateSigningKey IntermediateSigningKey `json:"intermediateSigningKey,omitempty"`
+	SignedMessage          string                 `json:"signedMessage"`
 }
 
 type IntermediateSigningKey struct {
-	SignedKey  string   `json:"signedKey" binding:"required"`
-	Signatures []string `json:"signatures" binding:"required"`
+	SignedKey  string   `json:"signedKey"`
+	Signatures []string `json:"signatures"`
 }
 
 type SignedKey struct {
-	KeyValue      string `json:"keyValue" binding:"required"`
-	KeyExpiration string `json:"keyExpiration" binding:"required"`
+	KeyValue      string `json:"keyValue"`
+	KeyExpiration string `json:"keyExpiration"`
 }
 
 type SignedMessage struct {
-	EncryptedMessage   string `json:"encryptedMessage" binding:"required"`
-	EphemeralPublicKey string `json:"ephemeralPublicKey" binding:"required"`
-	Tag                string `json:"tag" binding:"required"`
+	EncryptedMessage   string `json:"encryptedMessage"`
+	EphemeralPublicKey string `json:"ephemeralPublicKey"`
+	Tag                string `json:"tag"`
 }
 
 func (t *Token) UnmarshalSignedMessage(s string) (result SignedMessage, err error) {

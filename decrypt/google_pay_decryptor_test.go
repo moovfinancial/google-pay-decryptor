@@ -58,14 +58,6 @@ func (r *RootSigningKey) Filter(rootKeys []byte) ([]byte, []string, error) {
 	return rootKeys, keyValues, nil
 }
 
-// VerifySignature verifies the signature of a token
-func VerifySignature(token types.Token, keyValues []string, recipientId string) error {
-	// Implementation of signature verification
-	// This is a placeholder - the actual implementation would verify the token's signature
-	// against the provided key values and recipient ID
-	return nil
-}
-
 func TestInit(t *testing.T) {
 	recipientId := "merchant:12345678901234567890"
 	privateKey := "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVXmgr0TkF+YKxR9Hqk1oN/YrBHoHIY+fvPEnrdS1fb+hRANCAATLt+0tx4HUcMrQkq/D45PNREgAS9+zUP8iUbCl9dt4sQhaZyGmt47TcyJaFLwSUwcSxrYQ9MW7BiU9z1e2NkCB"
@@ -568,7 +560,7 @@ func TestSignatureVerification(t *testing.T) {
 	}
 	_, err := decryptor.Decrypt(invalidToken)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "only ECv2-signed tokens are supported")
+	assert.Contains(t, err.Error(), "unable to determine token format")
 
 	// Test case 2: Invalid intermediate signing key
 	invalidIntermediateKey := types.Token{
@@ -690,7 +682,7 @@ func TestDecryptWithInvalidInputs(t *testing.T) {
 				},
 				SignedMessage: "test",
 			},
-			expectedError: "only ECv2-signed tokens are supported",
+			expectedError: "unable to determine token format",
 		},
 		{
 			name: "Empty signature",
@@ -1023,6 +1015,7 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 	originalRootKeys := os.Getenv("ROOTKEYS")
 	originalRecipientId := os.Getenv("RECIPIENTID")
 	originalPrivateKey := os.Getenv("PRIVATEKEY")
+
 	defer func() {
 		os.Setenv("ROOTKEYS", originalRootKeys)
 		os.Setenv("RECIPIENTID", originalRecipientId)
@@ -1102,7 +1095,7 @@ func TestCryptographicOperationFailures(t *testing.T) {
 					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
 					Signatures: TestToken.IntermediateSigningKey.Signatures,
 				},
-				SignedMessage: `{"encryptedMessage":decrypt.EnvironmentTest,"ephemeralPublicKey":decrypt.EnvironmentTest,"tag":"invalid_tag"}`,
+				SignedMessage: `{"encryptedMessage":"test","ephemeralPublicKey":"test","tag":"invalid_tag"}`,
 			},
 			expectedError: "failed checking key expiration date",
 		},
@@ -1115,7 +1108,7 @@ func TestCryptographicOperationFailures(t *testing.T) {
 					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
 					Signatures: TestToken.IntermediateSigningKey.Signatures,
 				},
-				SignedMessage: `{"encryptedMessage":"invalid_encrypted","ephemeralPublicKey":decrypt.EnvironmentTest,"tag":decrypt.EnvironmentTest}`,
+				SignedMessage: `{"encryptedMessage":"invalid_encrypted","ephemeralPublicKey":"test","tag":"test"}`,
 			},
 			expectedError: "failed checking key expiration date",
 		},
@@ -1165,7 +1158,7 @@ func TestMalformedDataScenarios(t *testing.T) {
 					SignedKey:  TestToken.IntermediateSigningKey.SignedKey,
 					Signatures: TestToken.IntermediateSigningKey.Signatures,
 				},
-				SignedMessage: `{"encryptedMessage":"","ephemeralPublicKey":decrypt.EnvironmentTest,"tag":decrypt.EnvironmentTest}`,
+				SignedMessage: `{"encryptedMessage":"","ephemeralPublicKey":"test","tag":"test"}`,
 			},
 			expectedError: "failed checking key expiration date",
 		},

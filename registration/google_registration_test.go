@@ -6,9 +6,17 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt"
 	"github.com/vladyslavpavlenko/google-pay-decryptor/decrypt/types"
 )
+
+func tokenToBytes(token types.Token, t *testing.T) []byte {
+	bytes, err := json.Marshal(token)
+	require.NoError(t, err, "failed to marshal token to bytes")
+
+	return bytes
+}
 
 // New Token Payloads can be created here: https://developers.google.com/pay/api/processors/guides/test-and-validation/token-generator
 // Use Gateway ID = moov
@@ -25,34 +33,24 @@ func TestGoogleRegistrationPayload1(t *testing.T) {
 
 	// testPayloadJSON, err := os.ReadFile("formatted.json")
 	err := json.Unmarshal([]byte(testPayloadJSON), &input)
-	if err != nil {
-		t.Errorf("failed to unmarshal test payload: %v", err)
-	}
+	require.NoError(t, err, "failed to unmarshal test payload")
 
 	// Test Key registered with Google
 	privateKeyBytes, err := os.ReadFile("pk8.pem")
-	if err != nil {
-		fmt.Printf("Error reading test private key: %v\n", err)
-		return
-	}
+	require.NoError(t, err, "failed to read test private key")
 
 	// Create a new GooglePayDecryptor with the test private key
 	decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
-	if err != nil {
-		t.Errorf("failed to create decryptor: %v", err)
-	}
+	require.NoError(t, err, "failed to create decryptor")
 
 	// Decrypt the test payload
 	output, err = decryptor.Decrypt(input) // input is payload in types.Token
-	if err != nil {
-		t.Errorf("failed to decrypt: %v", err)
-	}
+	require.NoError(t, err, "failed to decrypt")
 
 	// Pretty print the decrypted token
 	prettyOutput, err := json.MarshalIndent(output, "", "  ")
-	if err != nil {
-		t.Fatalf("error formatting output: %v", err)
-	}
+	require.NoError(t, err, "error formatting output")
+
 	fmt.Printf("Decrypted Token:\n%s\n", string(prettyOutput))
 }
 

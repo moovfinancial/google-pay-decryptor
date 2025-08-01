@@ -200,7 +200,7 @@ func FetchGoogleRootKeys(environment Environment) ([]byte, error) {
 
 func (g *GooglePayDecryptor) DecryptWithMerchantId(token types.Token, merchantId string) (types.Decrypted, error) {
 	// Decrypt the test payload
-	decryptedToken, err := g.Decrypt(token) // input is payload in types.Token
+	decryptedToken, err := g.Decrypt(token) // input is payload as []byte
 	if err != nil {
 		return types.Decrypted{}, err
 	}
@@ -213,7 +213,20 @@ func (g *GooglePayDecryptor) DecryptWithMerchantId(token types.Token, merchantId
 	return decryptedToken, nil
 }
 
+// Decrypt automatically detects the token format and routes to the appropriate decryption method
 func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error) {
+	switch token.ProtocolVersion {
+	case "ECv1":
+		return g.DecryptECv1(token)
+	case "ECv2":
+		return g.DecryptECv2(token)
+	default:
+		return types.Decrypted{}, fmt.Errorf("unable to determine token format")
+	}
+}
+
+// DecryptECv2 decrypts an ECv2 token
+func (g *GooglePayDecryptor) DecryptECv2(token types.Token) (types.Decrypted, error) {
 	// Load root singning keys
 	var rootKeys RootSigningKey
 	rootSigningKeys, keyValues, err := rootKeys.Filter(g.rootKeys)
