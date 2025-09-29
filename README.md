@@ -44,7 +44,7 @@ Example of a Decrypted payload:
 ```
 {
   "messageId": "some-message-id",
-  "messageExpiration": "1759309000000"
+  "messageExpiration": "1759309000000",
   "paymentMethod": "CARD",
   "paymentMethodDetails": {
     "authMethod": "PAN_ONLY",
@@ -86,7 +86,7 @@ if err != nil {
 }
 
 // Create a new GooglePayDecryptor with the private key and auto-fetch latest Google Pay Root Signing Keys
-decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 if err != nil {
   t.Errorf("failed to create decryptor: %v", err)
 }
@@ -117,6 +117,14 @@ Google requires Processors to support [Annual Key Rotation](https://developers.g
 The `./key_generation/generate_keys.sh` script will generate keys in the format that [Google requires for key registration](https://developers.google.com/pay/api/processors/guides/implementation/prepare-your-key)
 - Once the new public key is generated, it needs to be sent to Google to be registered
 
+### Testing Key Rotation with Google
+
+Google will provide you with payloads, both good and bad.
+- Use the tests in `./registration` to test the payloads
+- Make sure you are using the new keys you generated
+- Also, you will need to set the `TEST_NEW_KEYS_AND_PAYLOADS_FROM_GOOGLE` environment variable to `true` when attempting to run the test
+   - Example: `TEST_NEW_KEYS_AND_PAYLOADS_FROM_GOOGLE=true go test -v ./registration`
+
 ### Supporting more than one key at runtime
 
 During Key Rotation, the Processor must support both the old key and new key in order to prevent decryption issues
@@ -130,7 +138,7 @@ After creating a new `GooglePayDecryptor` add the second key:
 ...
 
 // Create a new GooglePayDecryptor with the private key
-decryptor, err := decrypt.NewWithRootKeysFromGoogle("test", "gateway:moov", string(privateKeyBytes))
+decryptor, err := decrypt.NewWithRootKeysFromGoogle(decrypt.EnvironmentTest, "gateway:moov", string(privateKeyBytes))
 if err != nil {
   t.Errorf("failed to create decryptor: %v", err)
 }
