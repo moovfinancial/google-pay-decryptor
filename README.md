@@ -26,6 +26,7 @@ There are two main types in library:
    - `var output types.Decrypted`
    - [Encrypted Message Structure](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#encrypted-message)
    - [Decrypted Card Payment Method Structure](https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography#card)
+   - When using multiple keys, `output.KeyIdentifier` is set to the identifier of the key that successfully decrypted the payload (e.g. `"primary"` or `"secondary_key"`).
 
 Example of a Token (encrypted payload from GooglePay):
 ```
@@ -73,7 +74,7 @@ var output types.Decrypted
 
 // Read the Payload
 const payloadJSON = `ADD PAYLOAD FROM GOOGLE HERE`
-err := json.Unmarshal([]byte(testPayloadJSON), &input)
+err := json.Unmarshal([]byte(payloadJSON), &input)
 if err != nil {
   t.Errorf("failed to unmarshal payload: %v", err)
 }
@@ -121,8 +122,9 @@ The `./key_generation/generate_keys.sh` script will generate keys in the format 
 
 Google will provide you with payloads, both good and bad.
 - Use the tests in `./registration` to test the payloads
-- Make sure you are using the new keys you generated
-- Also, you will need to set the `TEST_NEW_KEYS_AND_PAYLOADS_FROM_GOOGLE` environment variable to `true` when attempting to run the test
+- Put the primary private key in `../keys/pk8.pem`; optionally add a second key in `../keys/pk8_2.pem` to test multi-key decryption (tests that need the second key skip if the file is missing)
+- Set the payload constants in the test files (e.g. `googleRegistrationTestPayload1`, `googleRegistrationTestPayload2`) with payloads from Google; tests skip when a payload is not configured
+- Set the `TEST_NEW_KEYS_AND_PAYLOADS_FROM_GOOGLE` environment variable to `true` when running these tests
    - Example: `TEST_NEW_KEYS_AND_PAYLOADS_FROM_GOOGLE=true go test -v ./registration`
 
 ### Supporting more than one key at runtime
@@ -144,13 +146,14 @@ if err != nil {
 }
 
 // Load a 2nd Private Key for Key Rotation
-decryptor.AddPrivateKey(string(privateKeyBytesBad), "old_key")
+decryptor.AddPrivateKey(string(privateKeyBytes2), "old_key")
 
 ...
 ```
 
-**NOTE:** Decryption will attempted with the first key loaded
-- The 2nd key will only be used to attempt decryption if the first key failed to decrypt the payload
+**NOTE:** Decryption is attempted with each key in order until one succeeds.
+- If multiple keys are loaded, the first key that successfully decrypts and validates the payload is used.
+- The returned `Decrypted` has `KeyIdentifier` set to the key that succeeded (e.g. `"primary"`, `"old_key"`), so you can tell which key was used.
 
 ## Original Authors
 

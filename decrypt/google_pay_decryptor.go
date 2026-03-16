@@ -275,6 +275,7 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 		}
 
 		// If we get here, the message has been successfully decrypted and validated
+		decrypted.KeyIdentifier = keyEntry.Identifier
 		return decrypted, nil
 	}
 

@@ -26,6 +26,9 @@ type Decrypted struct {
 	MessageId            string               `json:"messageId"`
 	PaymentMethod        string               `json:"paymentMethod"`
 	PaymentMethodDetails PaymentMethodDetails `json:"paymentMethodDetails"`
+
+	// KeyIdentifier is set by the decryptor to the identifier of the private key that successfully decrypted the payload. Not part of the Google payload; omitted from JSON.
+	KeyIdentifier string `json:"-"`
 }
 
 type PaymentMethodDetails struct {
