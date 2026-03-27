@@ -41,12 +41,12 @@ func setupGoogleRegistrationDecryptor(t *testing.T) *decrypt.GooglePayDecryptor 
 	}
 
 	// Use for test environment
-	//fmt.Printf("Environment: %s\n", googleRegTestEnvironment)
-	// decryptor, err := decrypt.NewWithRootKeysFromGoogle(googleRegTestEnvironment, "gateway:"+googleRegTestGatewayID, string(privateKeyBytes))
+	fmt.Printf("Environment: %s\n", googleRegTestEnvironment)
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(googleRegTestEnvironment, "gateway:"+googleRegTestGatewayID, string(privateKeyBytes))
 
 	// Use for production environment
-	fmt.Printf("Environment: %s\n", googleRegProdEnvironment)
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle(googleRegProdEnvironment, "gateway:"+googleRegTestGatewayID, string(privateKeyBytes))
+	//fmt.Printf("Environment: %s\n", googleRegProdEnvironment)
+	//decryptor, err := decrypt.NewWithRootKeysFromGoogle(googleRegProdEnvironment, "gateway:"+googleRegTestGatewayID, string(privateKeyBytes))
 	if err != nil {
 		t.Fatalf("create decryptor: %v", err)
 	}
