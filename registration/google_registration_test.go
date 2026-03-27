@@ -14,6 +14,7 @@ import (
 
 // Google Pay Token Decryption parameters
 const googleRegTestEnvironment = decrypt.EnvironmentTest
+const googleRegProdEnvironment = decrypt.EnvironmentProduction
 const googleRegTestGatewayID = "moov"
 
 // Google Pay Keys for testing
@@ -38,7 +39,14 @@ func setupGoogleRegistrationDecryptor(t *testing.T) *decrypt.GooglePayDecryptor 
 	if err != nil {
 		t.Fatalf("reading test private key: %v", err)
 	}
-	decryptor, err := decrypt.NewWithRootKeysFromGoogle(googleRegTestEnvironment, "gateway:"+googleRegTestGatewayID, string(privateKeyBytes))
+
+	// Use for test environment
+	//fmt.Printf("Environment: %s\n", googleRegTestEnvironment)
+	// decryptor, err := decrypt.NewWithRootKeysFromGoogle(googleRegTestEnvironment, "gateway:"+googleRegTestGatewayID, string(privateKeyBytes))
+
+	// Use for production environment
+	fmt.Printf("Environment: %s\n", googleRegProdEnvironment)
+	decryptor, err := decrypt.NewWithRootKeysFromGoogle(googleRegProdEnvironment, "gateway:"+googleRegTestGatewayID, string(privateKeyBytes))
 	if err != nil {
 		t.Fatalf("create decryptor: %v", err)
 	}
