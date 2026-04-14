@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/google/tink/go/subtle/random"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 var KeyExp = fmt.Sprintf("%d", (time.Now().Unix()+86400)*1000)

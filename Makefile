@@ -14,7 +14,7 @@ USERID := $(shell id -u $$USER)
 GROUPID:= $(shell id -g $$USER)
 
 export PROJECT_ROOT := $(PWD)
-export GOPRIVATE=github.com/moovfinancial
+export GOPRIVATE=github.com/moov-io
 
 all: install update build
 
@@ -28,7 +28,7 @@ update:
 	go mod vendor
 
 build:
-	go build -ldflags "-X github.com/moovfinancial/google-pay-decryptor.Version=${VERSION}" -o bin/google-pay-decryptor github.com/moovfinancial/google-pay-decryptor/cmd/google-pay-decryptor
+	go build -ldflags "-X github.com/moov-io/google-pay-decryptor.Version=${VERSION}" -o bin/google-pay-decryptor github.com/moov-io/google-pay-decryptor/cmd/google-pay-decryptor
 
 
 .PHONY: check
@@ -40,7 +40,7 @@ run: update build
 	./bin/google-pay-decryptor
 
 test: update
-	go test -cover github.com/moovfinancial/google-pay-decryptor/...
+	go test -cover github.com/moov-io/google-pay-decryptor/...
 
 .PHONY: clean
 clean:

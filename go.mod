@@ -1,4 +1,4 @@
-module github.com/moovfinancial/google-pay-decryptor
+module github.com/moov-io/google-pay-decryptor
 
 go 1.26.2
 

@@ -25,7 +25,7 @@ import (
 	"testing"
 
 	"github.com/google/tink/go/subtle/random"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
+	"github.com/moov-io/google-pay-decryptor/decrypt"
 	"github.com/stretchr/testify/assert"
 )
 
