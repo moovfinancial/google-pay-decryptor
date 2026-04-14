@@ -262,6 +262,11 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 	}
 	g.mu.RUnlock()
 
+	signedMessage, err := token.UnmarshalSignedMessage(token.SignedMessage)
+	if err != nil {
+		return types.Decrypted{}, fmt.Errorf("failed to unmarshal signed message: %w", err)
+	}
+
 	// Try each active key in sequence
 	var lastErr error
 	for _, keyEntry := range keys {
@@ -269,12 +274,6 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 		mac, encryptionKey, err := DeriveKeys(token, keyEntry.Key)
 		if err != nil {
 			lastErr = err
-			continue
-		}
-
-		signedMessage, err := token.UnmarshalSignedMessage(token.SignedMessage)
-		if err != nil {
-			lastErr = fmt.Errorf("failed to unmarshal signed message: %w", err)
 			continue
 		}
 
