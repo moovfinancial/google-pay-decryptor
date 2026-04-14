@@ -1,6 +1,6 @@
 module github.com/moovfinancial/google-pay-decryptor
 
-go 1.24.0
+go 1.26.2
 
 require (
 	github.com/google/tink/go v1.7.0
