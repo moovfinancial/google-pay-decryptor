@@ -23,8 +23,9 @@ package decrypt
 import (
 	"crypto/ecdsa"
 	"crypto/x509"
+	"fmt"
 
-	"github.com/google/tink/go/hybrid/subtle"
+	"github.com/tink-crypto/tink-go/v2/hybrid/subtle"
 )
 
 type PublicKey struct{}
@@ -49,7 +50,10 @@ func (pk *PublicKey) LoadEphemeralPublicKey(base64PublicKey string) (*subtle.ECP
 }
 
 func (pk *PublicKey) LoadPublicKey(base64PublicKey string) (*ecdsa.PublicKey, error) {
-	publicKeyBase64Decoded, _ := Base64Decode(base64PublicKey)
+	publicKeyBase64Decoded, err := Base64Decode(base64PublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode public key: %w", err)
+	}
 	pub, err := x509.ParsePKIXPublicKey(publicKeyBase64Decoded)
 	if err != nil {
 		return nil, err

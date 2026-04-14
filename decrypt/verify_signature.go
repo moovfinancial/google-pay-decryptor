@@ -21,7 +21,9 @@
 package decrypt
 
 import (
-	subsig "github.com/google/tink/go/signature/subtle"
+	"fmt"
+
+	subsig "github.com/tink-crypto/tink-go/v2/signature/subtle"
 	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
 )
 
@@ -84,7 +86,10 @@ func VerifyMessageSignature(keyValue string, token types.Token, receipientId str
 	if err != nil {
 		return err
 	}
-	signature, _ := Base64Decode(token.Signature)
+	signature, err := Base64Decode(token.Signature)
+	if err != nil {
+		return fmt.Errorf("failed to decode token signature: %w", err)
+	}
 	signedData := ConstructSignature(GooglePaySenderID, receipientId, token.ProtocolVersion, token.SignedMessage)
 	ecdsaV, err := subsig.NewECDSAVerifierFromPublicKey(GooglePaySHA256HashAlgorithm, GooglePayDEREncoding, publicKey)
 	if err != nil {

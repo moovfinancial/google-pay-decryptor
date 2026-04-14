@@ -32,20 +32,20 @@ func TestFilter(t *testing.T) {
 	table := []struct {
 		name            string
 		rootKeys        []byte
-		rootSigningKeys types.RootKeys
+		rootSigningKeys []types.RootKeys
 		keyValues       []string
 	}{
 		{
 			name:     "Loading development root signing keys",
 			rootKeys: []byte(TestRootKeys),
-			rootSigningKeys: types.RootKeys{
-				KeyValue:        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==",
-				ProtocolVersion: "ECv2",
-				KeyExpiration:   "2154841200000",
+			rootSigningKeys: []types.RootKeys{
+				{
+					KeyValue:        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==",
+					ProtocolVersion: "ECv2",
+					KeyExpiration:   "2154841200000",
+				},
 			},
 			keyValues: []string{
-				"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIsFro6K+IUxRr4yFTOTO+kFCCEvHo7B9IOMLxah6c977oFzX/beObH4a9OfosMHmft3JJZ6B3xpjIb8kduK4/A==",
-				"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==",
 				"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGnJ7Yo1sX9b4kr4Aa5uq58JRQfzD8bIJXw7WXaap/hVE+PnFxvjx4nVxt79SdRuUVeu++HZD0cGAv4IOznc96w==",
 			},
 		},
@@ -59,7 +59,7 @@ func TestFilter(t *testing.T) {
 				t.Error(err)
 			}
 
-			if !assert.Equal(t, rootSigningKeys, tb.rootSigningKeys) {
+			if !assert.Equal(t, tb.rootSigningKeys, rootSigningKeys) {
 				t.Errorf("loaded keys are incorrect or does not match expected one")
 			}
 

@@ -25,7 +25,7 @@ import (
 	"crypto/elliptic"
 	"crypto/x509"
 
-	"github.com/google/tink/go/hybrid/subtle"
+	"github.com/tink-crypto/tink-go/v2/hybrid/subtle"
 )
 
 type PrivateKey struct{}
