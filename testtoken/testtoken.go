@@ -26,9 +26,9 @@ import (
 	"crypto/elliptic"
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
-	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -144,11 +144,11 @@ func (g *Generator) Generate(pd PaymentData) (types.Token, error) {
 
 	// 3. Compute shared secret via ECDH
 	sharedX, _ := elliptic.P256().ScalarMult(g.recipientPubKey.X, g.recipientPubKey.Y, ephemeralKey.D.Bytes())
-	sharedSecret := sharedX.Bytes()
-	// Pad to 32 bytes if needed
-	for len(sharedSecret) < 32 {
-		sharedSecret = append([]byte{0}, sharedSecret...)
+	if sharedX == nil {
+		return types.Token{}, fmt.Errorf("computing shared secret: point at infinity")
 	}
+	sharedSecret := make([]byte, 32)
+	sharedX.FillBytes(sharedSecret)
 
 	// 4. Encode ephemeral public key (uncompressed point)
 	ephemeralPubBytes := elliptic.Marshal(elliptic.P256(), ephemeralKey.PublicKey.X, ephemeralKey.PublicKey.Y)
@@ -182,10 +182,10 @@ func (g *Generator) Generate(pd PaymentData) (types.Token, error) {
 	tagB64 := base64.StdEncoding.EncodeToString(tag)
 
 	// 8. Build signedMessage JSON
-	signedMsg := map[string]string{
-		"encryptedMessage":   encryptedMessageB64,
-		"ephemeralPublicKey": ephemeralPubB64,
-		"tag":                tagB64,
+	signedMsg := types.SignedMessage{
+		EncryptedMessage:   encryptedMessageB64,
+		EphemeralPublicKey: ephemeralPubB64,
+		Tag:                tagB64,
 	}
 	signedMsgJSON, err := json.Marshal(signedMsg)
 	if err != nil {
@@ -204,7 +204,15 @@ func (g *Generator) Generate(pd PaymentData) (types.Token, error) {
 	intermediateKeyB64 := base64.StdEncoding.EncodeToString(intermediatePubDER)
 
 	keyExp := strconv.FormatInt((now.Add(24*time.Hour).UnixMilli()), 10)
-	signedKeyJSON := fmt.Sprintf(`{"keyValue":"%s","keyExpiration":"%s"}`, intermediateKeyB64, keyExp)
+	sk := types.SignedKey{
+		KeyValue:      intermediateKeyB64,
+		KeyExpiration: keyExp,
+	}
+	skJSON, err := json.Marshal(sk)
+	if err != nil {
+		return types.Token{}, fmt.Errorf("marshaling signed key: %w", err)
+	}
+	signedKeyJSON := string(skJSON)
 
 	// 10. Sign intermediate key with root key
 	intermediateKeySigData := constructSignature(senderID, protocolVersion, signedKeyJSON)
@@ -269,9 +277,9 @@ func signECDSA(key *ecdsa.PrivateKey, data []byte) ([]byte, error) {
 
 func constructSignature(params ...string) []byte {
 	var signed []byte
+	b := make([]byte, 4)
 	for _, a := range params {
-		b := make([]byte, 4)
-		binary.LittleEndian.PutUint16(b, uint16(len(a)))
+		binary.LittleEndian.PutUint32(b, uint32(len(a)))
 		signed = append(signed, b...)
 		signed = append(signed, []byte(a)...)
 	}
