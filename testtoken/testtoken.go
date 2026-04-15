@@ -36,8 +36,8 @@ import (
 	"strconv"
 	"time"
 
-	subsig "github.com/google/tink/go/signature/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
+	subsig "github.com/tink-crypto/tink-go/v2/signature/subtle"
 	"golang.org/x/crypto/hkdf"
 )
 
@@ -81,9 +81,9 @@ type PaymentData struct {
 
 // Generator creates valid ECv2 test tokens.
 type Generator struct {
-	cfg              Config
-	rootKey          *ecdsa.PrivateKey
-	recipientPubKey  *ecdsa.PublicKey
+	cfg             Config
+	rootKey         *ecdsa.PrivateKey
+	recipientPubKey *ecdsa.PublicKey
 }
 
 // NewGenerator creates a Generator from the given Config.
@@ -109,13 +109,13 @@ func NewGenerator(cfg Config) (*Generator, error) {
 func (g *Generator) Generate(pd PaymentData) (types.Token, error) {
 	// 1. Build the plaintext payment data
 	now := time.Now()
-	expiration := strconv.FormatInt((now.Add(24*time.Hour).UnixMilli()), 10)
+	expiration := strconv.FormatInt((now.Add(24 * time.Hour).UnixMilli()), 10)
 
 	decrypted := types.Decrypted{
-		GatewayMerchantId:    g.cfg.GatewayMerchantID,
-		MessageExpiration:    expiration,
-		MessageId:            fmt.Sprintf("test-%d", now.UnixNano()),
-		PaymentMethod:        "CARD",
+		GatewayMerchantId: g.cfg.GatewayMerchantID,
+		MessageExpiration: expiration,
+		MessageId:         fmt.Sprintf("test-%d", now.UnixNano()),
+		PaymentMethod:     "CARD",
 		PaymentMethodDetails: types.PaymentMethodDetails{
 			Pan:             pd.PAN,
 			ExpirationMonth: pd.ExpirationMonth,
@@ -203,7 +203,7 @@ func (g *Generator) Generate(pd PaymentData) (types.Token, error) {
 	}
 	intermediateKeyB64 := base64.StdEncoding.EncodeToString(intermediatePubDER)
 
-	keyExp := strconv.FormatInt((now.Add(24*time.Hour).UnixMilli()), 10)
+	keyExp := strconv.FormatInt((now.Add(24 * time.Hour).UnixMilli()), 10)
 	sk := types.SignedKey{
 		KeyValue:      intermediateKeyB64,
 		KeyExpiration: keyExp,
@@ -232,8 +232,8 @@ func (g *Generator) Generate(pd PaymentData) (types.Token, error) {
 		ProtocolVersion: protocolVersion,
 		Signature:       base64.StdEncoding.EncodeToString(messageSig),
 		IntermediateSigningKey: types.IntermediateSigningKey{
-			SignedKey:   signedKeyJSON,
-			Signatures:  []string{base64.StdEncoding.EncodeToString(intermediateKeySig)},
+			SignedKey:  signedKeyJSON,
+			Signatures: []string{base64.StdEncoding.EncodeToString(intermediateKeySig)},
 		},
 		SignedMessage: string(signedMsgJSON),
 	}, nil
@@ -243,11 +243,11 @@ func (g *Generator) Generate(pd PaymentData) (types.Token, error) {
 // The root keys, recipient private key, and recipient ID are all matched.
 func DefaultConfig() Config {
 	return Config{
-		RootPrivateKey:    defaultRootPrivateKey,
-		RootKeysJSON:      defaultRootKeysJSON,
+		RootPrivateKey:      defaultRootPrivateKey,
+		RootKeysJSON:        defaultRootKeysJSON,
 		RecipientPrivateKey: defaultRecipientPrivateKey,
-		RecipientID:       "merchant:12345678901234567890",
-		GatewayMerchantID: "exampleGatewayMerchantId",
+		RecipientID:         "merchant:12345678901234567890",
+		GatewayMerchantID:   "exampleGatewayMerchantId",
 	}
 }
 
