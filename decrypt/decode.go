@@ -34,6 +34,9 @@ func Decode(encryptionKey []byte, encryptedData string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Zero IV is safe here per the Google Pay ECv2 spec: each message uses a unique
+	// encryption key derived via HKDF from an ephemeral ECDH shared secret, so
+	// the (key, IV) pair is never reused.
 	iv := make([]byte, aes.BlockSize)
 	stream := cipher.NewCTR(block, iv)
 	plaintext := make([]byte, len(ciphertext))

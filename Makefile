@@ -21,11 +21,9 @@ all: install update build
 .PHONY: install
 install:
 	go mod tidy
-	go install github.com/markbates/pkger/cmd/pkger@latest
-	go mod vendor
 
 update:
-	go mod vendor
+	go mod tidy
 
 build:
 	go build -ldflags "-X github.com/moov-io/google-pay-decryptor.Version=${VERSION}" -o bin/google-pay-decryptor github.com/moov-io/google-pay-decryptor/cmd/google-pay-decryptor

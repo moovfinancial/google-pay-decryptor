@@ -21,20 +21,25 @@
 package decrypt
 
 import (
-	"github.com/google/tink/go/mac/subtle"
+	"fmt"
+
+	"github.com/tink-crypto/tink-go/v2/mac/subtle"
 )
 
 func VerifyMessageHmac(macKey []byte, tag string, encryptedMessage string) error {
-	tagDecoded, _ := Base64Decode(tag)
-	encryptedMessageDecoded, _ := Base64Decode(encryptedMessage)
+	tagDecoded, err := Base64Decode(tag)
+	if err != nil {
+		return fmt.Errorf("failed to decode MAC tag: %w", err)
+	}
+	encryptedMessageDecoded, err := Base64Decode(encryptedMessage)
+	if err != nil {
+		return fmt.Errorf("failed to decode encrypted message: %w", err)
+	}
 
 	verifyer, err := subtle.NewHMAC(GooglePaySHA256HashAlgorithm, macKey, uint32(len(tagDecoded)))
 	if err != nil {
 		return err
 	}
 
-	if err := verifyer.VerifyMAC(tagDecoded, encryptedMessageDecoded); err != nil {
-		return err
-	}
-	return nil
+	return verifyer.VerifyMAC(tagDecoded, encryptedMessageDecoded)
 }
