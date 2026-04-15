@@ -24,7 +24,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 type RootSigningKey struct{}

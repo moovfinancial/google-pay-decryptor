@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 // https://developers.google.com/pay/api/processors/guides/implementation/validate-decryption-google

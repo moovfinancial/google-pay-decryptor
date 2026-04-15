@@ -23,8 +23,8 @@ package decrypt_test
 import (
 	"testing"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 	"github.com/stretchr/testify/assert"
 )
 

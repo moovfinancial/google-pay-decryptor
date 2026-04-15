@@ -24,7 +24,7 @@ import (
 	"fmt"
 
 	subsig "github.com/tink-crypto/tink-go/v2/signature/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 func VerifySignature(token types.Token, keyValues []string, receipientId string) error {

@@ -31,8 +31,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 // ecdsaSignature represents the ASN.1 structure of an ECDSA signature

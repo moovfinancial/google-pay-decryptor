@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 // Google Pay Token Decryption parameters
