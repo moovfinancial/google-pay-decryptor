@@ -27,9 +27,10 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 // https://developers.google.com/pay/api/processors/guides/implementation/validate-decryption-google
@@ -41,6 +42,9 @@ const (
 	GooglePayUncompressedFormat  = "UNCOMPRESSED"
 	GooglePaySHA256HashAlgorithm = "SHA256"
 	GooglePayDEREncoding         = "DER"
+
+	// maxResponseBodySize limits the size of HTTP responses when fetching root keys (1 MiB).
+	maxResponseBodySize = 1 << 20
 )
 
 type Environment string
@@ -56,7 +60,9 @@ type HTTPClient interface {
 }
 
 // DefaultHTTPClient is the default HTTP client used for making requests
-var DefaultHTTPClient HTTPClient = &http.Client{}
+var DefaultHTTPClient HTTPClient = &http.Client{
+	Timeout: 10 * time.Second,
+}
 
 // KeyEntry represents a private key with metadata
 type KeyEntry struct {
@@ -66,9 +72,12 @@ type KeyEntry struct {
 	Identifier string    // Optional identifier for the key
 }
 
+// GooglePayDecryptor is safe for concurrent use.
 type GooglePayDecryptor struct {
 	rootKeys    []byte
 	recipientId string
+
+	mu          sync.RWMutex
 	privateKeys []KeyEntry // Slice of private keys, ordered by priority
 }
 
@@ -89,13 +98,13 @@ func New(rootKeys []byte, recipientId string, privateKey string) *GooglePayDecry
 }
 
 func NewGooglePayDecryptor() (*GooglePayDecryptor, error) {
-	rootkeys := []byte(os.Getenv("ROOTKEYS"))
+	rootkeys := os.Getenv("ROOTKEYS")
 	recipientId := os.Getenv("RECIPIENTID")
 	privateKey := os.Getenv("PRIVATEKEY")
-	if rootkeys == nil || recipientId == "" || privateKey == "" {
+	if rootkeys == "" || recipientId == "" || privateKey == "" {
 		return nil, ErrLoadingKeys
 	}
-	return New(rootkeys, recipientId, privateKey), nil
+	return New([]byte(rootkeys), recipientId, privateKey), nil
 }
 
 func NewWithRootKeysFromGoogle(environment Environment, recipientId string, privateKey string) (*GooglePayDecryptor, error) {
@@ -119,6 +128,9 @@ func (g *GooglePayDecryptor) AddPrivateKey(key string, identifier string) error 
 	if identifier == "" {
 		return errors.New("empty identifier")
 	}
+
+	g.mu.Lock()
+	defer g.mu.Unlock()
 
 	// Check for duplicate identifier
 	for _, existingKey := range g.privateKeys {
@@ -147,6 +159,9 @@ func (g *GooglePayDecryptor) AddPrivateKey(key string, identifier string) error 
 
 // SetPrivateKeyActive sets the active state of a key by its identifier
 func (g *GooglePayDecryptor) SetPrivateKeyActive(identifier string, active bool) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	for i := range g.privateKeys {
 		if g.privateKeys[i].Identifier == identifier {
 			g.privateKeys[i].IsActive = active
@@ -158,6 +173,9 @@ func (g *GooglePayDecryptor) SetPrivateKeyActive(identifier string, active bool)
 
 // GetActivePrivateKeys returns all active private keys
 func (g *GooglePayDecryptor) GetActivePrivateKeys() []KeyEntry {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
 	var activeKeys []KeyEntry
 	for _, key := range g.privateKeys {
 		if key.IsActive {
@@ -190,7 +208,7 @@ func FetchGoogleRootKeys(environment Environment) ([]byte, error) {
 		return nil, fmt.Errorf("failed to fetch root keys, status code: %d", resp.StatusCode)
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBodySize))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
@@ -199,13 +217,11 @@ func FetchGoogleRootKeys(environment Environment) ([]byte, error) {
 }
 
 func (g *GooglePayDecryptor) DecryptWithMerchantId(token types.Token, merchantId string) (types.Decrypted, error) {
-	// Decrypt the test payload
-	decryptedToken, err := g.Decrypt(token) // input is payload in types.Token
+	decryptedToken, err := g.Decrypt(token)
 	if err != nil {
 		return types.Decrypted{}, err
 	}
 
-	// Check the Merchant ID
 	if decryptedToken.GatewayMerchantId != merchantId {
 		return types.Decrypted{}, fmt.Errorf("merchant ID mismatch: %s != %s", decryptedToken.GatewayMerchantId, merchantId)
 	}
@@ -214,38 +230,54 @@ func (g *GooglePayDecryptor) DecryptWithMerchantId(token types.Token, merchantId
 }
 
 func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error) {
-	// Load root singning keys
-	var rootKeys RootSigningKey
-	rootSigningKeys, keyValues, err := rootKeys.Filter(g.rootKeys)
+	// Load and filter root signing keys to ECv2 only
+	var rootKeysFilter RootSigningKey
+	ecv2RootKeys, keyValues, err := rootKeysFilter.Filter(g.rootKeys)
 	if err != nil {
-		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", err)
+		return types.Decrypted{}, fmt.Errorf("failed to load root signing keys: %w", err)
 	}
 
-	if err := VerifySignature(token, keyValues, g.recipientId); err != nil {
-		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", err)
+	// Only use non-expired root keys for signature verification
+	var validKeyValues []string
+	for i, rk := range ecv2RootKeys {
+		if CheckTime(rk.KeyExpiration) {
+			validKeyValues = append(validKeyValues, keyValues[i])
+		}
+	}
+	if len(validKeyValues) == 0 {
+		return types.Decrypted{}, fmt.Errorf("all root signing keys are expired: %w", ErrValidateTimeKey)
 	}
 
-	// check key expiration and verify signature
-	if !CheckTime(rootSigningKeys.KeyExpiration) {
-		return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", ErrValidateTimeKey)
+	if err := VerifySignature(token, validKeyValues, g.recipientId); err != nil {
+		return types.Decrypted{}, fmt.Errorf("failed to verify signature: %w", err)
+	}
+
+	// Take a snapshot of active keys under the read lock
+	g.mu.RLock()
+	keys := make([]KeyEntry, 0, len(g.privateKeys))
+	for _, k := range g.privateKeys {
+		if k.IsActive {
+			keys = append(keys, k)
+		}
+	}
+	g.mu.RUnlock()
+
+	signedMessage, err := token.UnmarshalSignedMessage(token.SignedMessage)
+	if err != nil {
+		return types.Decrypted{}, fmt.Errorf("failed to unmarshal signed message: %w", err)
 	}
 
 	// Try each active key in sequence
 	var lastErr error
-	for _, keyEntry := range g.privateKeys {
-		if !keyEntry.IsActive {
-			continue
-		}
-
-		// derive mac and encryption keys
+	for _, keyEntry := range keys {
+		// Derive MAC and encryption keys
 		mac, encryptionKey, err := DeriveKeys(token, keyEntry.Key)
 		if err != nil {
 			lastErr = err
 			continue
 		}
 
-		signedMessage, _ := token.UnmarshalSignedMessage(token.SignedMessage)
-		// verify mac
+		// Verify MAC
 		if err := VerifyMessageHmac(mac, signedMessage.Tag, signedMessage.EncryptedMessage); err != nil {
 			lastErr = err
 			continue
@@ -261,25 +293,23 @@ func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error)
 		var decrypted types.Decrypted
 		err = json.Unmarshal(decodedMessage, &decrypted)
 		if err != nil {
-			var newError string
 			if e, ok := err.(*json.SyntaxError); ok {
-				newError = fmt.Sprintf("syntax error at byte offset %d", e.Offset)
+				lastErr = fmt.Errorf("JSON syntax error at byte offset %d", e.Offset)
+			} else {
+				lastErr = fmt.Errorf("failed to unmarshal decrypted payload: %w", err)
 			}
-			lastErr = errors.New(newError)
 			continue
 		}
 
-		// check message expiration
+		// Check message expiration
 		if !CheckTime(decrypted.MessageExpiration) {
-			return types.Decrypted{}, fmt.Errorf("could not verify intermediate signing key signature: %w", ErrValidateTimeMessage)
+			return types.Decrypted{}, fmt.Errorf("decrypted message has expired: %w", ErrValidateTimeMessage)
 		}
 
-		// If we get here, the message has been successfully decrypted and validated
 		decrypted.KeyIdentifier = keyEntry.Identifier
 		return decrypted, nil
 	}
 
-	// If we get here, none of the keys worked
 	if lastErr != nil {
 		return types.Decrypted{}, fmt.Errorf("failed to decrypt with any key: %w", lastErr)
 	}

@@ -53,7 +53,7 @@ func ConstructSignature(params ...string) []byte {
 	var signed []byte
 	for _, a := range params {
 		b := make([]byte, 4)
-		binary.LittleEndian.PutUint16(b, uint16(len(a)))
+		binary.LittleEndian.PutUint32(b, uint32(len(a)))
 		signed = append(signed, b...)
 		signed = append(signed, []byte(a)...)
 	}

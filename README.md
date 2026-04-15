@@ -12,7 +12,7 @@ The Google Pay Decryptor library provides functions to verify Google Pay Token S
 
 ## Getting Started
 
-This library uses the [Tink](https://github.com/google/tink) library, which is the recommended decryption library from Google.
+This library uses the [Tink](https://github.com/tink-crypto/tink-go) library, which is the recommended decryption library from Google.
 - **NOTE**: The Go version of the Tink library is not full featured like the Java version
    - In the Google Pay documentation, you will find functions available in Java that are NOT available in Go.
 

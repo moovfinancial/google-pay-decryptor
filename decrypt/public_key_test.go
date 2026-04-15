@@ -29,8 +29,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/google/tink/go/hybrid/subtle"
-	"github.com/moovfinancial/google-pay-decryptor/decrypt"
+	"github.com/tink-crypto/tink-go/v2/hybrid/subtle"
+	"github.com/moov-io/google-pay-decryptor/decrypt"
 	"github.com/stretchr/testify/assert"
 )
 

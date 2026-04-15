@@ -22,31 +22,32 @@ package decrypt
 
 import (
 	"encoding/json"
+	"fmt"
 
-	"github.com/moovfinancial/google-pay-decryptor/decrypt/types"
+	"github.com/moov-io/google-pay-decryptor/decrypt/types"
 )
 
 type RootSigningKey struct{}
 
-func (r *RootSigningKey) Filter(rootKeys []byte) (types.RootKeys, []string, error) {
-	filteredRootKeys, keyValues, err := loadRootSigningKeys(rootKeys)
-	if err != nil {
-		return types.RootKeys{}, nil, err
-	}
-	return filteredRootKeys, keyValues, nil
+func (r *RootSigningKey) Filter(rootKeys []byte) ([]types.RootKeys, []string, error) {
+	return loadRootSigningKeys(rootKeys)
 }
 
-func loadRootSigningKeys(rootKeys []byte) (types.RootKeys, []string, error) {
+func loadRootSigningKeys(rootKeys []byte) ([]types.RootKeys, []string, error) {
 	var keys types.RootSigningKey
-	json.Unmarshal(rootKeys, &keys)
-	keyValues := make([]string, 0)
-	for _, filtered := range keys.RootKeys {
-		keyValues = append(keyValues, filtered.KeyValue)
+	if err := json.Unmarshal(rootKeys, &keys); err != nil {
+		return nil, nil, fmt.Errorf("failed to parse root keys JSON: %w", err)
 	}
-	for _, filtered := range keys.RootKeys {
-		if filtered.ProtocolVersion == "ECv2" {
-			return filtered, keyValues, nil
+	var ecv2Keys []types.RootKeys
+	var keyValues []string
+	for _, key := range keys.RootKeys {
+		if key.ProtocolVersion == "ECv2" {
+			ecv2Keys = append(ecv2Keys, key)
+			keyValues = append(keyValues, key.KeyValue)
 		}
 	}
-	return types.RootKeys{}, keyValues, ErrParseJson
+	if len(ecv2Keys) == 0 {
+		return nil, nil, ErrParseJson
+	}
+	return ecv2Keys, keyValues, nil
 }
