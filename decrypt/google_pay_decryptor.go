@@ -74,8 +74,13 @@ type KeyEntry struct {
 
 // GooglePayDecryptor is safe for concurrent use.
 type GooglePayDecryptor struct {
-	rootKeys    []byte
 	recipientId string
+
+	// rootKeysMu guards rootKeys for concurrent SetRootKeys/Decrypt callers.
+	// It is intentionally a separate lock from mu (which guards privateKeys)
+	// so that root-key refresh and private-key rotation do not contend.
+	rootKeysMu sync.RWMutex
+	rootKeys   []byte
 
 	mu          sync.RWMutex
 	privateKeys []KeyEntry // Slice of private keys, ordered by priority
@@ -117,6 +122,42 @@ func NewWithRootKeysFromGoogle(environment Environment, recipientId string, priv
 		return nil, ErrLoadingKeys
 	}
 	return New(rootkeys, recipientId, privateKey), nil
+}
+
+// SetRootKeys atomically replaces the root signing keys used by Decrypt.
+//
+// The provided JSON is validated by running it through the same loader the
+// Decrypt path uses (loadRootSigningKeys). If parsing fails or no usable ECv2
+// keys are present, SetRootKeys returns the error and leaves the existing
+// root keys untouched. On success, the swap is performed under a write lock
+// so it is safe to call concurrently with Decrypt.
+func (g *GooglePayDecryptor) SetRootKeys(rootKeys []byte) error {
+	if _, _, err := loadRootSigningKeys(rootKeys); err != nil {
+		return err
+	}
+
+	// Defensive copy so callers can't mutate the bytes we hold.
+	stored := make([]byte, len(rootKeys))
+	copy(stored, rootKeys)
+
+	g.rootKeysMu.Lock()
+	g.rootKeys = stored
+	g.rootKeysMu.Unlock()
+	return nil
+}
+
+// RootKeys returns a defensive copy of the currently configured root signing
+// keys. Intended for tests and visibility — Decrypt reads the keys directly
+// under its own read lock.
+func (g *GooglePayDecryptor) RootKeys() []byte {
+	g.rootKeysMu.RLock()
+	defer g.rootKeysMu.RUnlock()
+	if g.rootKeys == nil {
+		return nil
+	}
+	out := make([]byte, len(g.rootKeys))
+	copy(out, g.rootKeys)
+	return out
 }
 
 // AddPrivateKey adds a new private key to the decryptor
@@ -230,9 +271,15 @@ func (g *GooglePayDecryptor) DecryptWithMerchantId(token types.Token, merchantId
 }
 
 func (g *GooglePayDecryptor) Decrypt(token types.Token) (types.Decrypted, error) {
+	// Snapshot the root signing keys under the read lock so SetRootKeys can
+	// run concurrently without racing the parse below.
+	g.rootKeysMu.RLock()
+	rootKeysSnapshot := g.rootKeys
+	g.rootKeysMu.RUnlock()
+
 	// Load and filter root signing keys to ECv2 only
 	var rootKeysFilter RootSigningKey
-	ecv2RootKeys, keyValues, err := rootKeysFilter.Filter(g.rootKeys)
+	ecv2RootKeys, keyValues, err := rootKeysFilter.Filter(rootKeysSnapshot)
 	if err != nil {
 		return types.Decrypted{}, fmt.Errorf("failed to load root signing keys: %w", err)
 	}
