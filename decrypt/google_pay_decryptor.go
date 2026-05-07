@@ -95,8 +95,12 @@ func New(rootKeys []byte, recipientId string, privateKey string) *GooglePayDecry
 			Identifier: "primary",
 		},
 	}
+	// Defensive copy so callers can't mutate the bytes we hold (matches the
+	// contract documented on SetRootKeys).
+	storedRootKeys := make([]byte, len(rootKeys))
+	copy(storedRootKeys, rootKeys)
 	return &GooglePayDecryptor{
-		rootKeys:    rootKeys,
+		rootKeys:    storedRootKeys,
 		recipientId: recipientId,
 		privateKeys: keys,
 	}
